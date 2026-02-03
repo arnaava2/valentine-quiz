@@ -1,47 +1,68 @@
-// ===== CONFIG =====
-const GIRLFRIEND_NAME = "Madhura"; // change if needed
-document.getElementById("heroTitle").textContent = `${GIRLFRIEND_NAME}, I made something for you.`;
+// ===== Personalization =====
+const GIRLFRIEND_NAME = "Madhura";
+document.getElementById("heroTitle").textContent = `${GIRLFRIEND_NAME}.`;
 
-// ===== MUSIC =====
+// ===== Panels / Fade routing =====
+const intro = document.getElementById("intro");
+const quiz = document.getElementById("quiz");
+const final = document.getElementById("final");
+
+function showPanel(panelToShow){
+  [intro, quiz, final].forEach(p => p.classList.remove("is-active"));
+  panelToShow.classList.add("is-active");
+}
+
+// ===== Music (continuous once started) =====
 const bgm = document.getElementById("bgm");
-const playBtn = document.getElementById("playBtn");
-const pauseBtn = document.getElementById("pauseBtn");
-const volume = document.getElementById("volume");
-const nowPlaying = document.getElementById("nowPlaying");
+const musicBtn = document.getElementById("musicBtn");
 
-function setNowPlaying(t){ nowPlaying.textContent = t; }
+let musicOn = false;
 
 async function startMusic(){
   try{
-    bgm.volume = Number(volume.value);
-    await bgm.play();
-    playBtn.disabled = true;
-    pauseBtn.disabled = false;
-    volume.disabled = false;
-    setNowPlaying("Playing 🎶");
+    bgm.volume = 0.75;
+    bgm.muted = false;
+    await bgm.play(); // requires user gesture
+    musicOn = true;
+    musicBtn.textContent = "Music: On";
   }catch(e){
-    setNowPlaying("Tap again to allow audio");
+    // If it fails, keep it off and let user try again
+    musicOn = false;
+    musicBtn.textContent = "Music: Tap to enable";
+    console.error(e);
   }
 }
-function pauseMusic(){
-  bgm.pause();
-  playBtn.disabled = false;
-  pauseBtn.disabled = true;
-  setNowPlaying("Paused");
-}
-playBtn.addEventListener("click", startMusic);
-pauseBtn.addEventListener("click", pauseMusic);
-volume.addEventListener("input", () => bgm.volume = Number(volume.value));
 
-// ===== QUIZ DATA =====
-// Types: gate_choice, choice, text, number, loop_yesno, yes_only
+function toggleMusic(){
+  if (!musicOn){
+    startMusic();
+    return;
+  }
+  // Minimalist: allow pause, but default experience is continuous.
+  if (bgm.paused){
+    bgm.play().then(() => {
+      musicBtn.textContent = "Music: On";
+    }).catch(() => {
+      musicBtn.textContent = "Music: Tap to enable";
+    });
+  } else {
+    bgm.pause();
+    musicBtn.textContent = "Music: Off";
+  }
+}
+
+musicBtn.addEventListener("click", toggleMusic);
+
+// ===== Quiz data =====
 const questions = [
   {
     id: "fell_date",
     type: "gate_choice",
     title: "Let’s rewind for a second…",
     prompt:
-      "Every story has a quiet beginning — a moment that didn’t announce itself, but changed everything anyway.\n\n" +
+      "Every story has a quiet beginning —\n" +
+      "a moment that didn’t announce itself,\n" +
+      "but changed everything anyway.\n\n" +
       "When do you believe the undersigned first fell for you?",
     options: [
       "January 14, 2025",
@@ -51,20 +72,17 @@ const questions = [
     ],
     correctIndex: 1,
     okMsg: "Exactly. Some feelings don’t arrive loudly — they just stay.",
-    nopeMsg:
-      "Close… but the heart remembers dates better than calendars. Try once more 💗"
+    nopeMsg: "Close… but the heart remembers dates better than calendars. Try once more."
   },
-
   {
     id: "trait",
-    type: "choice",
+    type: "choice_reveal",
     title: "About you…",
     prompt:
-      "There are a million things about you that make loving you feel easy.\n\n" +
+      "There are a million things about you\n" +
+      "that make loving you feel easy.\n\n" +
       "If you had to guess — what does the undersigned love most about you?",
     options: ["Your honesty", "Your eyes", "Your smile", "The tiny efforts you don’t realize you make"],
-    // Any selection accepted, but reveal always says "all of them"
-    revealOnSelect: true,
     revealMsg:
       "Trick question 🙂\n\n" +
       "Because it’s never been just one thing.\n\n" +
@@ -74,96 +92,93 @@ const questions = [
       "and the tiny efforts you think go unnoticed — but never do.\n\n" +
       "It’s all of you. Always has been."
   },
-
   {
     id: "ideal_winter_date",
     type: "text",
     title: "Let me imagine this with you…",
     prompt:
-      "It’s winter.\nThe air is cold, but the moment is warm.\n\n" +
+      "It’s winter.\n" +
+      "The air is cold, but the moment is warm.\n\n" +
       "Tell me — what does your idea of an ideal winter date look like?",
-    placeholder: "No wrong answers… just tell me what feels right.",
+    placeholder: "No wrong answers… just whatever feels right.",
     minLen: 5,
-    okMsg: "Noted. I’m keeping this one close 🤍"
+    okMsg: "Noted. I’m keeping this one close."
   },
-
   {
     id: "valentine_word",
     type: "text",
     title: "One word. One feeling.",
     prompt:
-      `When I say the word “Valentine”… what’s the first thing that comes to your mind, ${GIRLFRIEND_NAME}?`,
+      `When I say the word “Valentine”…\nwhat’s the first thing that comes to your mind, ${GIRLFRIEND_NAME}?`,
     placeholder: "A word, a feeling, or even a sentence…",
     minLen: 1,
-    okMsg: "I like that. I was hoping you’d say something like that."
+    okMsg: "I like that."
   },
-
   {
     id: "vibe",
     type: "choice",
     title: "Set the mood…",
     prompt:
-      "If you had to choose the feeling of our date — the kind you remember weeks later — what would it be?",
-    options: ["✨ Soft & romantic", "🍷 Elegant & cozy", "🌃 Playful & spontaneous", "🔥 Intimate & warm"],
+      "If you had to choose the feeling of our date —\n" +
+      "the kind you remember weeks later —\n" +
+      "what would it be?",
+    options: ["Soft & romantic", "Elegant & cozy", "Playful & spontaneous", "Intimate & warm"],
     okMsg: "Noted. I’ll build the evening around this."
   },
-
   {
     id: "budget",
     type: "number",
-    title: "Let’s be practical for a second… but still us.",
+    title: "Just one practical detail…",
     prompt:
-      "Every good plan needs a little grounding in reality — just enough to keep the magic intentional.\n\n" +
-      "In numbers only, what do you think the budget of our Valentine’s Day expedition should be?",
-    placeholder: "Just a number. I promise I won’t judge.",
-    okMsg: "Got it. I like the way you think.",
-    invalidMsg: "Numbers only 😌 (example: 50, 120, 250)"
+      "In numbers only — what should the budget be\n" +
+      "for our Valentine’s Day expedition?",
+    placeholder: "Numbers only (example: 120)",
+    okMsg: "Perfect."
   },
-
   {
     id: "gift",
     type: "text",
-    title: "About your Valentine’s gift…",
+    title: "About your gift…",
     prompt:
       "Some gifts are wrapped.\nSome are felt.\n\n" +
       "Tell me — what would you love to receive this Valentine’s Day?",
-    placeholder: "It can be something small… or something meaningful.",
+    placeholder: "Something small, something meaningful… anything.",
     minLen: 1,
     okMsg: "I’m glad you told me."
   },
-
   {
     id: "us_thought",
     type: "text",
     title: "Something I’d really love to know…",
     prompt:
-      "When you think about us — what’s a moment, feeling, or thought that stays with you the most?",
+      "When you think about us —\n" +
+      "what’s a moment, feeling, or thought\n" +
+      "that stays with you the most?",
     placeholder: "There’s no right answer. Just whatever comes to you.",
     minLen: 1,
     okMsg: "Thank you for trusting me with that."
   },
-
   {
     id: "with_me_feeling",
     type: "text",
     title: "One last soft question…",
     prompt:
-      "When you’re with me, what’s the feeling you notice the most?",
+      "When you’re with me,\nwhat’s the feeling you notice the most?",
     placeholder: "One word or a sentence… both are perfect.",
     minLen: 1,
     okMsg: "I’m really glad I get to be that for you."
   },
-
   {
     id: "mini_promise",
-    type: "yes_only",
+    type: "one_button",
     title: "No thinking allowed.",
     prompt:
-      "If I promise to plan this day with care, intention, and more love than I usually know how to show…\n\n" +
+      "If I promise to plan this day with care,\n" +
+      "intention,\n" +
+      "and more love than I usually know how to show…\n\n" +
       "Will you let me?",
-    buttonText: "Yes 🤍"
+    buttonText: "Yes."
   },
-
   {
     id: "valentine_yes",
     type: "loop_yesno",
@@ -171,193 +186,210 @@ const questions = [
     prompt:
       "So now that you know what this really is…\n\n" +
       "Will you be the undersigned’s Valentine?",
-    yesText: "Yes 💕",
-    noText: "No",
+    yesText: "Yes.",
+    noText: "No.",
     noMsg:
-      "Hmm.\nI don’t think that answer fits us.\n\n" +
-      "Let’s try that again — but this time, listen to your heart 😌"
+      "Hmm.\n" +
+      "I don’t think that answer fits us.\n\n" +
+      "Let’s try again — but this time,\nlisten to your heart."
   }
 ];
 
-// ===== STATE =====
+// ===== Quiz state =====
 let idx = 0;
-const answers = {}; // id -> value
+const answers = {}; // { id: value }
 
-// ===== UI HOOKS =====
-const qArea = document.getElementById("qArea");
+// ===== DOM hooks =====
+const startBtn = document.getElementById("startBtn");
+const card = document.getElementById("card");
+const helper = document.getElementById("helper");
 const backBtn = document.getElementById("backBtn");
 const nextBtn = document.getElementById("nextBtn");
-const bar = document.getElementById("bar");
+const progressText = document.getElementById("progressText");
+
+// ===== Start flow =====
+startBtn.addEventListener("click", async () => {
+  // This click counts as the user gesture: start music here
+  await startMusic();
+
+  // Fade intro -> quiz
+  showPanel(quiz);
+  render();
+});
+
+// ===== Rendering with fade between questions =====
+function setHelper(text){
+  helper.textContent = text || "";
+}
 
 function setProgress(){
-  const done = Object.keys(answers).length;
-  const pct = Math.round((done / questions.length) * 100);
-  bar.style.width = `${pct}%`;
+  progressText.textContent = `${idx + 1} / ${questions.length}`;
 }
 
-function showHelp(msg, kind="info"){
-  const help = qArea.querySelector(".help") || document.createElement("div");
-  help.className = "help show";
-  help.textContent = msg;
-  if (!qArea.contains(help)) qArea.appendChild(help);
-}
-
-function clearHelp(){
-  const help = qArea.querySelector(".help");
-  if (help) help.classList.remove("show");
+function fadeSwap(renderFn){
+  card.classList.add("fadeOut");
+  setTimeout(() => {
+    renderFn();
+    card.classList.remove("fadeOut");
+    card.classList.add("fadeIn");
+    setTimeout(() => card.classList.remove("fadeIn"), 200);
+  }, 220);
 }
 
 function render(){
-  const q = questions[idx];
-  qArea.innerHTML = "";
-
-  const title = document.createElement("h3");
-  title.className = "qTitle";
-  title.textContent = q.title;
-
-  const prompt = document.createElement("p");
-  prompt.className = "qPrompt";
-  prompt.textContent = q.prompt;
-
-  qArea.appendChild(title);
-  qArea.appendChild(prompt);
-
-  clearHelp();
-  nextBtn.disabled = true;
-
-  if (q.type === "gate_choice" || q.type === "choice"){
-    renderChoice(q);
-  } else if (q.type === "text"){
-    renderText(q);
-  } else if (q.type === "number"){
-    renderNumber(q);
-  } else if (q.type === "yes_only"){
-    renderYesOnly(q);
-  } else if (q.type === "loop_yesno"){
-    renderLoopYesNo(q);
-  }
-
-  backBtn.disabled = (idx === 0);
-  nextBtn.textContent = (idx === questions.length - 1) ? "Finish →" : "Next →";
-
   setProgress();
+  setHelper("");
+
+  const q = questions[idx];
+  backBtn.disabled = idx === 0;
+  nextBtn.disabled = true;
+  nextBtn.textContent = (idx === questions.length - 1) ? "Finish" : "Next";
+
+  fadeSwap(() => renderQuestion(q));
+}
+
+function renderQuestion(q){
+  card.innerHTML = "";
+
+  const t = document.createElement("h3");
+  t.className = "qTitle";
+  t.textContent = q.title;
+
+  const p = document.createElement("p");
+  p.className = "qPrompt";
+  p.textContent = q.prompt;
+
+  card.appendChild(t);
+  card.appendChild(p);
+
+  if (q.type === "gate_choice" || q.type === "choice" || q.type === "choice_reveal"){
+    renderChoice(q);
+    return;
+  }
+  if (q.type === "text"){
+    renderText(q);
+    return;
+  }
+  if (q.type === "number"){
+    renderNumber(q);
+    return;
+  }
+  if (q.type === "one_button"){
+    renderOneButton(q);
+    return;
+  }
+  if (q.type === "loop_yesno"){
+    renderLoopYesNo(q);
+    return;
+  }
 }
 
 function renderChoice(q){
-  const opts = document.createElement("div");
-  opts.className = "options";
+  const wrap = document.createElement("div");
+  wrap.className = "options";
 
-  q.options.forEach((text, i) => {
+  q.options.forEach((label, i) => {
     const b = document.createElement("button");
     b.type = "button";
     b.className = "opt";
-    b.textContent = text;
+    b.textContent = label;
 
     const current = answers[q.id];
     if (current === i) b.classList.add("selected");
 
     b.addEventListener("click", () => {
-      [...opts.children].forEach(c => c.classList.remove("selected"));
+      [...wrap.children].forEach(x => x.classList.remove("selected"));
       b.classList.add("selected");
 
-      answers[q.id] = i;
-
-      // gate_choice logic
+      // Gate choice: must be correct to proceed
       if (q.type === "gate_choice"){
         if (i === q.correctIndex){
-          showHelp(q.okMsg);
+          answers[q.id] = i;
+          setHelper(q.okMsg);
           nextBtn.disabled = false;
         } else {
-          showHelp(q.nopeMsg);
+          delete answers[q.id];
+          setHelper(q.nopeMsg);
           nextBtn.disabled = true;
-          delete answers[q.id]; // keep progress honest
         }
-        setProgress();
         return;
       }
 
-      // normal choice
-      if (q.revealOnSelect){
-        showHelp(q.revealMsg);
-        // Add a tiny pause before enabling Next, makes the reveal land
+      // Choice reveal: always accept, but show reveal
+      if (q.type === "choice_reveal"){
+        answers[q.id] = i;
+        setHelper(q.revealMsg);
         nextBtn.disabled = true;
-        setTimeout(() => { nextBtn.disabled = false; }, 800);
-      } else {
-        if (q.okMsg) showHelp(q.okMsg);
-        nextBtn.disabled = false;
+        setTimeout(() => { nextBtn.disabled = false; }, 700);
+        return;
       }
 
-      setProgress();
+      // Normal choice
+      answers[q.id] = i;
+      setHelper(q.okMsg || "");
+      nextBtn.disabled = false;
     });
 
-    opts.appendChild(b);
+    wrap.appendChild(b);
   });
 
-  qArea.appendChild(opts);
+  card.appendChild(wrap);
 
-  // if already answered and not gate_choice wrong
-  if (answers[q.id] !== undefined){
-    if (q.type === "choice") nextBtn.disabled = false;
+  // If already answered and not gate-blocked, allow Next
+  if (answers[q.id] !== undefined && q.type !== "gate_choice"){
+    nextBtn.disabled = false;
   }
 }
 
 function renderText(q){
-  const input = document.createElement("textarea");
-  input.className = "textbox";
-  input.rows = 4;
-  input.placeholder = q.placeholder || "";
-  input.value = answers[q.id] || "";
+  const ta = document.createElement("textarea");
+  ta.className = "textbox";
+  ta.rows = 4;
+  ta.placeholder = q.placeholder || "";
+  ta.value = answers[q.id] || "";
 
-  input.addEventListener("input", () => {
-    const val = input.value.trim();
-    const ok = (val.length >= (q.minLen ?? 1));
+  ta.addEventListener("input", () => {
+    const v = ta.value.trim();
+    const ok = v.length >= (q.minLen ?? 1);
     nextBtn.disabled = !ok;
-    if (ok && q.okMsg) {
-      // only show when they stop typing for a moment
-      clearTimeout(input._t);
-      input._t = setTimeout(() => showHelp(q.okMsg), 400);
-    }
+    if (ok && q.okMsg) setHelper(q.okMsg);
   });
 
-  qArea.appendChild(input);
+  card.appendChild(ta);
 
-  // preload state
-  const current = (answers[q.id] || "").trim();
-  nextBtn.disabled = !(current.length >= (q.minLen ?? 1));
+  const v = (answers[q.id] || "").trim();
+  nextBtn.disabled = !(v.length >= (q.minLen ?? 1));
 }
 
 function renderNumber(q){
-  const input = document.createElement("input");
-  input.className = "textbox";
-  input.type = "text";
-  input.inputMode = "numeric";
-  input.placeholder = q.placeholder || "";
-  input.value = answers[q.id] || "";
+  const inp = document.createElement("input");
+  inp.className = "numBox";
+  inp.type = "text";
+  inp.inputMode = "numeric";
+  inp.placeholder = q.placeholder || "";
+  inp.value = answers[q.id] || "";
 
-  input.addEventListener("input", () => {
-    // Allow only digits in the field
-    input.value = input.value.replace(/[^\d]/g, "");
-    const val = input.value.trim();
-    if (val.length > 0){
-      showHelp(q.okMsg);
+  inp.addEventListener("input", () => {
+    inp.value = inp.value.replace(/[^\d]/g, "");
+    const v = inp.value.trim();
+    if (v.length > 0){
+      answers[q.id] = v;
+      setHelper(q.okMsg || "");
       nextBtn.disabled = false;
-      answers[q.id] = val;
     } else {
-      showHelp(q.invalidMsg || "Numbers only.");
-      nextBtn.disabled = true;
       delete answers[q.id];
+      setHelper("Numbers only.");
+      nextBtn.disabled = true;
     }
-    setProgress();
   });
 
-  qArea.appendChild(input);
+  card.appendChild(inp);
 
-  const cur = (answers[q.id] || "").trim();
-  nextBtn.disabled = !(cur.length > 0);
-  if (cur.length > 0 && q.okMsg) showHelp(q.okMsg);
+  const v = (answers[q.id] || "").trim();
+  nextBtn.disabled = !(v.length > 0);
 }
 
-function renderYesOnly(q){
+function renderOneButton(q){
   const wrap = document.createElement("div");
   wrap.className = "options";
 
@@ -368,14 +400,15 @@ function renderYesOnly(q){
 
   b.addEventListener("click", () => {
     answers[q.id] = true;
-    nextBtn.disabled = false;
-    showHelp("Good. That’s all I needed 🤍");
-    setTimeout(() => next(), 650);
-    setProgress();
+    setHelper("Good.");
+    // Auto-advance with a gentle pause
+    setTimeout(() => goNext(), 450);
   });
 
   wrap.appendChild(b);
-  qArea.appendChild(wrap);
+  card.appendChild(wrap);
+
+  nextBtn.disabled = true;
 }
 
 function renderLoopYesNo(q){
@@ -394,162 +427,82 @@ function renderLoopYesNo(q){
 
   yes.addEventListener("click", () => {
     answers[q.id] = "yes";
-    nextBtn.disabled = false;
-    showHelp("Then it’s settled. I’m smiling already ❤️");
-    setTimeout(() => finish(), 500);
-    setProgress();
+    setHelper("Then it’s settled.");
+    setTimeout(() => finish(), 350);
   });
 
   no.addEventListener("click", () => {
-    // Loop back: do not record answer
     delete answers[q.id];
+    setHelper(q.noMsg);
+    // keep them here; no Next
     nextBtn.disabled = true;
-    showHelp(q.noMsg || "Try again 😌");
-    // a tiny shake effect
     no.animate(
       [{ transform: "translateX(0)" }, { transform: "translateX(-6px)" }, { transform: "translateX(6px)" }, { transform: "translateX(0)" }],
-      { duration: 260, easing: "ease-out" }
+      { duration: 240, easing: "ease-out" }
     );
-    setProgress();
   });
 
   wrap.appendChild(yes);
   wrap.appendChild(no);
-  qArea.appendChild(wrap);
+  card.appendChild(wrap);
+
+  nextBtn.disabled = true;
 }
 
-// ===== NAV =====
+// ===== Navigation =====
 backBtn.addEventListener("click", () => {
   idx = Math.max(0, idx - 1);
   render();
 });
 
-nextBtn.addEventListener("click", () => next());
+nextBtn.addEventListener("click", () => goNext());
 
-function next(){
+function goNext(){
   const q = questions[idx];
 
-  // store text/number values when moving forward
+  // Persist text/number on Next
   if (q.type === "text"){
-    const ta = qArea.querySelector("textarea");
-    const val = (ta?.value || "").trim();
-    if (val.length >= (q.minLen ?? 1)){
-      answers[q.id] = val;
-    }
+    const ta = card.querySelector("textarea");
+    const v = (ta?.value || "").trim();
+    if (v.length >= (q.minLen ?? 1)) answers[q.id] = v;
   }
   if (q.type === "number"){
-    const inp = qArea.querySelector("input");
-    const val = (inp?.value || "").trim();
-    if (val.length > 0) answers[q.id] = val;
+    const inp = card.querySelector("input");
+    const v = (inp?.value || "").trim();
+    if (v.length > 0) answers[q.id] = v;
   }
 
-  if (idx === questions.length - 1){
-    // last question handles finish internally
-    return;
-  }
+  if (idx >= questions.length - 1) return;
   idx += 1;
   render();
 }
 
-// ===== REVEAL =====
-const quizCard = document.getElementById("quizCard");
-const revealCard = document.getElementById("revealCard");
-const finalConfettiBtn = document.getElementById("finalConfettiBtn");
-
+// ===== Finish (fade to final) =====
 function finish(){
-  quizCard.style.display = "none";
-  revealCard.classList.remove("hidden");
+  // Fill final outputs
+  const vibeQ = questions.find(x => x.id === "vibe");
+  const vibe = (answers.vibe !== undefined) ? vibeQ.options[answers.vibe] : "—";
+  const budget = answers.budget ? `$${answers.budget}` : "—";
+  const winter = answers.ideal_winter_date || "—";
+  const val = answers.valentine_word || "—";
+  const gift = answers.gift || "—";
+  const us = answers.us_thought || "—";
 
-  // Fill outputs (fallback to em dash if empty)
-  const winter = answers["ideal_winter_date"] ?? "—";
-  const val = answers["valentine_word"] ?? "—";
-  const vibeIndex = answers["vibe"];
-  const vibe = (vibeIndex !== undefined) ? questions.find(x => x.id==="vibe").options[vibeIndex] : "—";
-  const budget = answers["budget"] ? `$${answers["budget"]}` : "—";
-  const gift = answers["gift"] ?? "—";
-  const us = answers["us_thought"] ?? "—";
+  document.getElementById("finalTitle").textContent = `${GIRLFRIEND_NAME}, you’re my Valentine.`;
+  document.getElementById("finalBody").textContent =
+    `On February 14, I’m taking you out — not just for a date, but for a memory.\n` +
+    `Thank you for saying yes to me, and to us.`;
 
-  document.getElementById("inviteLine1").textContent =
-    `${GIRLFRIEND_NAME}, on February 14, I’m taking you out — not just for a “Valentine’s dinner”… but for a memory.`;
+  document.getElementById("outVibe").textContent = vibe;
+  document.getElementById("outBudget").textContent = budget;
+  document.getElementById("outWinter").textContent = winter;
+  document.getElementById("outVal").textContent = val;
+  document.getElementById("outGift").textContent = gift;
+  document.getElementById("outUs").textContent = us;
 
-  document.getElementById("vibeOut").textContent = vibe;
-  document.getElementById("budgetOut").textContent = budget;
-  document.getElementById("winterOut").textContent = winter;
-  document.getElementById("valOut").textContent = val;
-  document.getElementById("giftOut").textContent = gift;
-  document.getElementById("usOut").textContent = us;
-
-  document.getElementById("inviteLine2").textContent =
-    `Thank you for saying yes — to me, and to us. ❤️`;
-
-  launchConfetti(320);
-
-  // Subtle: if music isn't playing, hint gently
-  if (bgm.paused) setNowPlaying("Tap Play for music 🎶");
+  showPanel(final);
 }
 
-finalConfettiBtn.addEventListener("click", () => launchConfetti(420));
-
-// ===== CONFETTI (simple) =====
-const canvas = document.getElementById("confetti");
-const ctx = canvas.getContext("2d");
-let pieces = [];
-let animId = null;
-
-function resize(){
-  canvas.width = window.innerWidth * devicePixelRatio;
-  canvas.height = window.innerHeight * devicePixelRatio;
-}
-window.addEventListener("resize", resize);
-resize();
-
-function rand(min, max){ return Math.random() * (max - min) + min; }
-
-function launchConfetti(count){
-  const w = canvas.width, h = canvas.height;
-  for (let i=0; i<count; i++){
-    pieces.push({
-      x: rand(0, w),
-      y: rand(-h*0.2, 0),
-      vx: rand(-1.2, 1.2) * devicePixelRatio,
-      vy: rand(1.6, 3.6) * devicePixelRatio,
-      s: rand(4, 10) * devicePixelRatio,
-      r: rand(0, Math.PI*2),
-      vr: rand(-0.15, 0.15),
-      a: 1
-    });
-  }
-  if (!animId) tick();
-}
-
-function tick(){
-  animId = requestAnimationFrame(tick);
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-
-  pieces = pieces.filter(p => p.y < canvas.height + p.s && p.a > 0.02);
-
-  for (const p of pieces){
-    p.x += p.vx;
-    p.y += p.vy;
-    p.r += p.vr;
-    p.a *= 0.988;
-
-    ctx.save();
-    ctx.globalAlpha = p.a;
-    ctx.translate(p.x, p.y);
-    ctx.rotate(p.r);
-
-    ctx.fillStyle = (Math.random() > 0.5) ? "rgba(255,92,138,0.9)" : "rgba(255,143,177,0.9)";
-    ctx.fillRect(-p.s/2, -p.s/2, p.s, p.s);
-
-    ctx.restore();
-  }
-
-  if (pieces.length === 0){
-    cancelAnimationFrame(animId);
-    animId = null;
-  }
-}
-
-// Init
-render();
+// ===== On load =====
+showPanel(intro);
+musicBtn.textContent = "Music: Off";
