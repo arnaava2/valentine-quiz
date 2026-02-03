@@ -3,135 +3,101 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>For Madhura 💘</title>
+    <title>For Madhura</title>
     <link rel="stylesheet" href="styles.css" />
-    <meta name="theme-color" content="#ff5c8a" />
+    <meta name="theme-color" content="#0b0b0f" />
   </head>
 
   <body>
-    <canvas id="confetti" aria-hidden="true"></canvas>
+    <audio id="bgm" preload="auto" loop playsinline>
+      <source src="song.mp3" type="audio/mpeg" />
+      Your browser does not support audio.
+    </audio>
 
-    <main class="shell">
-      <header class="top">
-        <div class="pill">💗 Private Invite</div>
-        <h1 class="title" id="heroTitle">Madhura, I made something for you.</h1>
-        <p class="subtitle">
-          A tiny quiz. A soft story. A question I already know the answer to.
-        </p>
-      </header>
+    <main class="stage">
+      <!-- INTRO -->
+      <section class="panel is-active" id="intro" aria-live="polite">
+        <div class="center">
+          <p class="kicker">A private invite</p>
+          <h1 class="hero" id="heroTitle">Madhura.</h1>
+          <p class="sub">
+            I made something small for you.<br />
+            Keep the volume on.
+          </p>
 
-      <!-- Music -->
-      <section class="card" id="musicCard">
-        <div class="row">
-          <div>
-            <h2 class="h2">Press play first 🎶</h2>
-            <p class="muted">
-              (Browsers block autoplay — so you have to tap once. Then the music stays with us.)
-            </p>
+          <button class="primary" id="startBtn" type="button">
+            Begin
+          </button>
+
+          <p class="fineprint" id="audioHint">
+            Tap “Begin” to start the music.
+          </p>
+        </div>
+      </section>
+
+      <!-- QUIZ (only thing that remains after intro) -->
+      <section class="panel" id="quiz" aria-live="polite">
+        <div class="frame">
+          <div class="topline">
+            <span class="progressText" id="progressText">1 / 11</span>
+
+            <button class="linkBtn" id="musicBtn" type="button" aria-label="Toggle music">
+              Music: Off
+            </button>
           </div>
 
-          <button class="btn" id="playBtn" type="button">▶ Play</button>
-        </div>
-
-        <div class="audioWrap">
-          <audio id="bgm" preload="auto" loop>
-            <source src="song.mp3.mp3" type="audio/mpeg" />
-            Your browser does not support audio.
-          </audio>
-
-          <div class="miniControls">
-            <button class="ghost" id="pauseBtn" type="button" disabled>⏸ Pause</button>
-            <input id="volume" type="range" min="0" max="1" step="0.01" value="0.7" disabled />
-            <span class="muted" id="nowPlaying">Not playing</span>
+          <div class="card" id="card">
+            <!-- injected -->
           </div>
+
+          <div class="nav">
+            <button class="ghost" id="backBtn" type="button" disabled>Back</button>
+            <button class="primary" id="nextBtn" type="button" disabled>Next</button>
+          </div>
+
+          <p class="fineprint" id="helper"></p>
         </div>
       </section>
 
-      <!-- Cute carousel (text-only, no images needed) -->
-      <section class="card" id="carouselCard" aria-hidden="true">
-        <div class="carousel">
-          <div class="slide">“Some feelings arrive quietly… and then never leave.”</div>
-          <div class="slide">“If love had a shape, it would look a lot like you.”</div>
-          <div class="slide">“This is me, choosing you — on purpose.”</div>
-        </div>
-        <p class="muted tiny center">Swipe/drag (or just let it drift).</p>
-      </section>
+      <!-- FINAL -->
+      <section class="panel" id="final" aria-live="polite">
+        <div class="frame finalFrame">
+          <p class="kicker">Result</p>
+          <h2 class="finalTitle" id="finalTitle">You’re my Valentine.</h2>
+          <p class="finalBody" id="finalBody"></p>
 
-      <!-- Quiz -->
-      <section class="card" id="quizCard" aria-live="polite">
-        <div class="quizHeader">
-          <h2 class="h2" id="quizTitle">Mini quiz (very important)</h2>
-          <p class="muted" id="quizSub">No wrong answers… except one. You’ll know which 😌</p>
-        </div>
-
-        <div id="progress" class="progress" aria-hidden="true">
-          <div id="bar" class="bar"></div>
-        </div>
-
-        <div id="qArea" class="qArea"></div>
-
-        <div class="quizFooter">
-          <button class="btn secondary" id="backBtn" type="button" disabled>← Back</button>
-          <button class="btn" id="nextBtn" type="button" disabled>Next →</button>
-        </div>
-      </section>
-
-      <!-- Reveal -->
-      <section class="card reveal hidden" id="revealCard">
-        <h2 class="big" id="revealTitle">Result: You’re officially my Valentine ❤️</h2>
-        <p class="muted" id="revealIntro">
-          You’ve unlocked a day built with intention, warmth, and a ridiculous amount of love.
-        </p>
-
-        <div class="inviteBox">
-          <p class="inviteText" id="inviteLine1"></p>
-
-          <div class="twoCol">
-            <div class="miniCard">
-              <div class="miniTitle">Vibe</div>
-              <div class="miniValue" id="vibeOut">—</div>
+          <div class="finalGrid">
+            <div class="mini">
+              <div class="miniLabel">Vibe</div>
+              <div class="miniValue" id="outVibe">—</div>
             </div>
-            <div class="miniCard">
-              <div class="miniTitle">Budget</div>
-              <div class="miniValue" id="budgetOut">—</div>
+            <div class="mini">
+              <div class="miniLabel">Budget</div>
+              <div class="miniValue" id="outBudget">—</div>
+            </div>
+            <div class="mini wide">
+              <div class="miniLabel">Ideal winter date</div>
+              <div class="miniValue" id="outWinter">—</div>
+            </div>
+            <div class="mini wide">
+              <div class="miniLabel">When I say “Valentine”…</div>
+              <div class="miniValue" id="outVal">—</div>
+            </div>
+            <div class="mini wide">
+              <div class="miniLabel">Your gift</div>
+              <div class="miniValue" id="outGift">—</div>
+            </div>
+            <div class="mini wide">
+              <div class="miniLabel">Your words about us</div>
+              <div class="miniValue" id="outUs">—</div>
             </div>
           </div>
 
-          <div class="miniCard full">
-            <div class="miniTitle">Your winter date idea</div>
-            <div class="miniValue" id="winterOut">—</div>
-          </div>
-
-          <div class="miniCard full">
-            <div class="miniTitle">When I say “Valentine”… you think of</div>
-            <div class="miniValue" id="valOut">—</div>
-          </div>
-
-          <div class="miniCard full">
-            <div class="miniTitle">What you want as a gift</div>
-            <div class="miniValue" id="giftOut">—</div>
-          </div>
-
-          <div class="miniCard full">
-            <div class="miniTitle">A thought you shared about us</div>
-            <div class="miniValue" id="usOut">—</div>
-          </div>
-
-          <p class="inviteText" id="inviteLine2"></p>
-
-          <div class="ctaRow">
-            <button class="btn" id="finalConfettiBtn" type="button">One more confetti 💕</button>
-          </div>
+          <p class="fineprint">
+            Keep this page. I want to read it with you.
+          </p>
         </div>
-
-        <p class="tiny muted center">
-          P.S. If you’re smiling right now, that’s literally the whole point.
-        </p>
       </section>
-
-      <footer class="footer">
-        <p class="muted tiny center">Made with love, exclusively for Madhura.</p>
-      </footer>
     </main>
 
     <script src="script.js"></script>
