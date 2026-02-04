@@ -31,13 +31,9 @@ async function startMusic(){
   }
 }
 function toggleMusic(){
-  if (!musicOn){
-    startMusic();
-    return;
-  }
+  if (!musicOn){ startMusic(); return; }
   if (bgm.paused){
-    bgm.play().then(() => (musicBtn.textContent = "Music: On"))
-      .catch(() => (musicBtn.textContent = "Music: Tap"));
+    bgm.play().then(()=>musicBtn.textContent="Music: On").catch(()=>musicBtn.textContent="Music: Tap");
   } else {
     bgm.pause();
     musicBtn.textContent = "Music: Off";
@@ -45,36 +41,46 @@ function toggleMusic(){
 }
 musicBtn.addEventListener("click", toggleMusic);
 
-// ===== Interactive moving background (parallax + mobile drift) =====
+// ===== Cursor-reactive background =====
 const root = document.documentElement;
-
-function setParallax(x, y){
-  const px = (x - 0.5) * 22; // ~ -11..11
-  const py = (y - 0.5) * 18; // ~ -9..9
-  root.style.setProperty("--px", px.toFixed(1) + "px");
-  root.style.setProperty("--py", py.toFixed(1) + "px");
+function setCursorVars(x, y){
+  root.style.setProperty("--cx", (x*100).toFixed(2) + "%");
+  root.style.setProperty("--cy", (y*100).toFixed(2) + "%");
 }
 window.addEventListener("mousemove", (e) => {
-  setParallax(e.clientX / window.innerWidth, e.clientY / window.innerHeight);
+  setCursorVars(e.clientX / window.innerWidth, e.clientY / window.innerHeight);
 });
-let t = 0;
+// Mobile gentle drift
+let drift = 0;
 setInterval(() => {
-  t += 0.008;
-  const x = 0.5 + Math.sin(t) * 0.08;
-  const y = 0.5 + Math.cos(t * 0.9) * 0.08;
-  setParallax(x, y);
+  drift += 0.01;
+  const x = 0.5 + Math.sin(drift) * 0.08;
+  const y = 0.45 + Math.cos(drift * 0.9) * 0.08;
+  setCursorVars(x, y);
 }, 60);
 
-// ===== Quiz data =====
+// ===== DOM =====
+const startBtn = document.getElementById("startBtn");
+const card = document.getElementById("card");
+const backBtn = document.getElementById("backBtn");
+const nextBtn = document.getElementById("nextBtn");
+const progressText = document.getElementById("progressText");
+const pageNumLeft = document.getElementById("pageNumLeft");
+const pageNumRight = document.getElementById("pageNumRight");
+const chapterLine = document.getElementById("chapterLine");
+const chapterTitle = document.getElementById("chapterTitle");
+const noteTitle = document.getElementById("noteTitle");
+const noteBody = document.getElementById("noteBody");
+const noteFooter = document.getElementById("noteFooter");
+
+// ===== Content: questions =====
 const questions = [
   {
     id: "fell_date",
     type: "gate_choice",
-    title: "Let’s rewind for a second…",
+    title: "A gentle timestamp…",
     prompt:
-      "Every story has a quiet beginning —\n" +
-      "a moment that didn’t announce itself,\n" +
-      "but changed everything anyway.\n\n" +
+      "Some moments don’t arrive with fireworks.\nThey arrive quietly — and then they never leave.\n\n" +
       "When do you believe the undersigned first fell for you?",
     options: [
       "January 14, 2025",
@@ -83,176 +89,119 @@ const questions = [
       "It was inevitable 😌"
     ],
     correctIndex: 1,
-    okMsg: "Exactly. Some feelings don’t arrive loudly — they just stay.",
-    nopeMsg: "Close… but the heart remembers dates better than calendars. Try once more."
+    noteOk: "Correct. The heart is annoyingly precise about you.",
+    noteNo: "Not quite — try again. (The right date is a little sacred.)"
   },
   {
     id: "trait",
     type: "choice_reveal",
-    title: "About you…",
+    title: "A question with a trapdoor…",
     prompt:
-      "There are a million things about you\n" +
-      "that make loving you feel easy.\n\n" +
-      "If you had to guess — what does the undersigned love most about you?",
-    options: ["Your honesty", "Your eyes", "Your smile", "The tiny efforts you don’t realize you make"],
-    revealMsg:
-      "Trick question 🙂\n\n" +
-      "Because it’s never been just one thing.\n\n" +
-      "It’s your honesty,\n" +
-      "the way your eyes soften,\n" +
-      "your smile that feels like home,\n" +
-      "and the tiny efforts you think go unnoticed — but never do.\n\n" +
-      "It’s all of you. Always has been."
+      "Pick one — the trait the undersigned loves most about you.\n\n" +
+      "Choose carefully… or don’t. I already know what I’ll write in the margin.",
+    options: ["Your honesty", "Your eyes", "Your smile", "Your tiny efforts"],
+    revealNote:
+      "All of them.\n\n" +
+      "Your honesty that feels safe.\nYour eyes that soften the world.\nYour smile that turns a bad day gentle.\nAnd your tiny efforts — the ones you think don’t matter — that matter the most.\n\n" +
+      "It’s always been all of you."
   },
   {
     id: "ideal_winter_date",
     type: "text",
-    title: "Let me imagine this with you…",
+    title: "Paint me a winter scene…",
     prompt:
-      "It’s winter.\n" +
-      "The air is cold, but the moment is warm.\n\n" +
-      "Tell me — what does your idea of an ideal winter date look like?",
-    placeholder: "No wrong answers… just whatever feels right.",
-    minLen: 5,
-    okMsg: "Noted. I’m keeping this one close."
+      "It’s cold outside.\nWe’re warm anyway.\n\nDescribe your ideal winter date — like a little excerpt from our story.",
+    placeholder: "Write whatever you want…",
+    minLen: 6,
+    noteOk: "Noted. I’m filing this under ‘things I will make happen.’"
   },
   {
     id: "valentine_word",
     type: "text",
     title: "One word. One feeling.",
     prompt:
-      `When I say the word “Valentine”…\nwhat’s the first thing that comes to your mind, ${GIRLFRIEND_NAME}?`,
-    placeholder: "A word, a feeling, or even a sentence…",
+      `When I say “Valentine”… what blooms in your mind, ${GIRLFRIEND_NAME}?`,
+    placeholder: "A word, a feeling, a sentence…",
     minLen: 1,
-    okMsg: "I like that."
+    noteOk: "That’s beautiful. I’m keeping it."
   },
   {
     id: "vibe",
     type: "choice",
-    title: "Set the mood…",
+    title: "Choose the mood of the chapter…",
     prompt:
-      "If you had to choose the feeling of our date —\n" +
-      "the kind you remember weeks later —\n" +
-      "what would it be?",
+      "If our date had a *vibe* — the kind you remember later — what would it be?",
     options: ["Soft & romantic", "Elegant & cozy", "Playful & spontaneous", "Intimate & warm"],
-    okMsg: "Noted. I’ll build the evening around this."
+    noteForChoice: (pick) => `Perfect. I’ll plan like it’s ${pick.toLowerCase()} and we have nowhere else to be.`
   },
   {
     id: "budget",
     type: "number",
-    title: "Just one practical detail…",
+    title: "A practical bookmark…",
     prompt:
-      "In numbers only — what should the budget be\n" +
-      "for our Valentine’s Day expedition?",
-    placeholder: "Numbers only (example: 120)",
-    okMsg: "Perfect."
+      "Numbers only.\nWhat should the budget be for our Valentine’s Day expedition?",
+    placeholder: "Example: 120",
+    noteOk: "Understood. The undersigned will spend it wisely."
   },
   {
     id: "gift",
     type: "text",
-    title: "About your gift…",
+    title: "Your gift, in your words…",
     prompt:
-      "Some gifts are wrapped.\nSome are felt.\n\n" +
-      "Tell me — what would you love to receive this Valentine’s Day?",
-    placeholder: "Something small, something meaningful… anything.",
+      "If you could receive *anything* — small or meaningful — what would you love?",
+    placeholder: "Tell me honestly…",
     minLen: 1,
-    okMsg: "I’m glad you told me."
+    noteOk: "Noted. Consider this a very serious hint."
   },
   {
-    id: "us_thought",
+    id: "us_words",
     type: "text",
-    title: "Something I’d really love to know…",
+    title: "Write in the margins…",
     prompt:
-      "When you think about us —\n" +
-      "what’s a moment, feeling, or thought\n" +
-      "that stays with you the most?",
-    placeholder: "There’s no right answer. Just whatever comes to you.",
+      "Write anything you want here.\nA thought. A memory. A line for us.\n\nNo rules.",
+    placeholder: "I’m listening…",
     minLen: 1,
-    okMsg: "Thank you for trusting me with that."
-  },
-  {
-    id: "with_me_feeling",
-    type: "text",
-    title: "One last soft question…",
-    prompt:
-      "When you’re with me,\nwhat’s the feeling you notice the most?",
-    placeholder: "One word or a sentence… both are perfect.",
-    minLen: 1,
-    okMsg: "I’m really glad I get to be that for you."
-  },
-  {
-    id: "mini_promise",
-    type: "one_button",
-    title: "No thinking allowed.",
-    prompt:
-      "If I promise to plan this day with care,\n" +
-      "intention,\n" +
-      "and more love than I usually know how to show…\n\n" +
-      "Will you let me?",
-    buttonText: "Yes."
+    noteOk: "Thank you. This one matters."
   },
   {
     id: "valentine_yes",
     type: "loop_yesno",
-    title: "Just one last thing…",
+    title: "The question that starts the next chapter…",
     prompt:
-      "So now that you know what this really is…\n\n" +
       "Will you be the undersigned’s Valentine?",
     yesText: "Yes.",
     noText: "No.",
-    noMsg:
-      "Hmm.\n" +
-      "I don’t think that answer fits us.\n\n" +
-      "Let’s try again — but this time,\nlisten to your heart."
+    noNote:
+      "That answer doesn’t suit you.\n\nTurn the page and try again — but this time, choose the one your heart is already smiling about.",
+    yesNote:
+      "Then it’s settled.\n\nFebruary 14 is ours."
   }
 ];
 
 // ===== State =====
 let idx = 0;
-const answers = {}; // {id: value}
 
-// ===== DOM =====
-const startBtn = document.getElementById("startBtn");
-const card = document.getElementById("card");
-const helper = document.getElementById("helper");
-const backBtn = document.getElementById("backBtn");
-const nextBtn = document.getElementById("nextBtn");
-const progressText = document.getElementById("progressText");
-const pageLeft = document.getElementById("pageLeft");
-const pageRight = document.getElementById("pageRight");
-const chapterLine = document.getElementById("chapterLine");
-const chapterTitle = document.getElementById("chapterTitle");
+// Interactivity upgrade:
+// We separate the *Question Page* from the *Note Page*.
+// After a valid answer, Next takes you to NOTE page.
+// Next from NOTE page goes to the next question.
+let mode = "question"; // "question" | "note"
+let pendingNote = "";  // note to show on the note page
+const answers = {};
 
-// ===== Footnote shows on NEXT page =====
-let pendingHelper = "";
-let lastShownHelper = "";
-
-function queueHelper(msg){
-  pendingHelper = msg || "";
-}
-
-function showQueuedHelper(){
-  if (pendingHelper && pendingHelper !== lastShownHelper){
-    helper.textContent = pendingHelper;
-    lastShownHelper = pendingHelper;
-  } else {
-    helper.textContent = "";
-  }
-  pendingHelper = "";
-}
-
-// ===== Chapter/page cosmetics =====
+// ===== Cosmetics =====
 function setProgress(){
   progressText.textContent = `${idx + 1} / ${questions.length}`;
+  // page numbers are purely aesthetic now
+  const left = 3 + idx * 2 + (mode === "note" ? 1 : 0);
+  const right = left + 1;
+  pageNumLeft.textContent = `— ${left} —`;
+  pageNumRight.textContent = `— ${right} —`;
 
-  // Page numbers: intro is page 1; quiz starts at page 2
-  const page = idx + 2;
-  pageLeft.textContent = `— ${page} —`;
-  pageRight.textContent = `— ${page} —`;
-
-  // Chapter titles: keep it subtle
   chapterLine.textContent = "CHAPTER II";
-  chapterTitle.textContent = "A Gentle Examination";
+  chapterTitle.textContent = (mode === "question")
+    ? "A Gentle Examination"
+    : "A Note From The Undersigned";
 }
 
 // ===== Fade swap =====
@@ -262,27 +211,66 @@ function fadeSwap(renderFn){
     renderFn();
     card.classList.remove("fadeOut");
     card.classList.add("fadeIn");
-    setTimeout(() => card.classList.remove("fadeIn"), 200);
+    setTimeout(() => card.classList.remove("fadeIn"), 180);
   }, 240);
+}
+
+// ===== Typewriter prompt (subtle, classy) =====
+function typewriter(el, text){
+  el.textContent = "";
+  let i = 0;
+  const speed = 10; // gentle
+  const tick = () => {
+    i += 2;
+    el.textContent = text.slice(0, i);
+    if (i < text.length) requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
 }
 
 // ===== Render =====
 function render(){
   setProgress();
-  backBtn.disabled = idx === 0;
+  backBtn.disabled = (idx === 0 && mode === "question");
   nextBtn.disabled = true;
-  nextBtn.textContent = (idx === questions.length - 1) ? "Finish" : "Next";
-
-  const q = questions[idx];
+  nextBtn.textContent = (mode === "note") ? "Turn Page" : "Next";
 
   fadeSwap(() => {
-    renderQuestion(q);
-    // show previous question's note now (on this new page)
-    showQueuedHelper();
+    if (mode === "question") renderQuestion(questions[idx]);
+    else renderNote();
   });
 }
 
+// ===== Note page =====
+function renderNote(){
+  // Right page is the note area; we update it here
+  noteTitle.textContent = "A note, in the margin…";
+  noteBody.textContent = pendingNote || "—";
+  noteFooter.textContent = "Turn the page when you’re ready.";
+
+  // On note page, user can always proceed
+  nextBtn.disabled = false;
+
+  // In the main card area (left page), show a minimal “Page Turn” content
+  card.innerHTML = `
+    <h3 class="qTitle">Pause here.</h3>
+    <p class="qPrompt">Some answers deserve a quiet beat.</p>
+  `;
+}
+
+// ===== Question page =====
+function inkBlot(btn){
+  btn.classList.remove("inked");
+  void btn.offsetWidth;
+  btn.classList.add("inked");
+}
+
 function renderQuestion(q){
+  // Reset note page guidance (default)
+  noteTitle.textContent = "Turn a page…";
+  noteBody.textContent = "Your answers will leave little notes here — like bookmarks.";
+  noteFooter.textContent = "—";
+
   card.innerHTML = "";
 
   const t = document.createElement("h3");
@@ -291,42 +279,26 @@ function renderQuestion(q){
 
   const p = document.createElement("p");
   p.className = "qPrompt";
-  p.textContent = q.prompt;
-
   card.appendChild(t);
   card.appendChild(p);
+
+  // Typewriter prompt
+  typewriter(p, q.prompt);
 
   if (q.type === "gate_choice" || q.type === "choice" || q.type === "choice_reveal"){
     renderChoice(q);
     return;
   }
-  if (q.type === "text"){
-    renderText(q);
-    return;
-  }
-  if (q.type === "number"){
-    renderNumber(q);
-    return;
-  }
-  if (q.type === "one_button"){
-    renderOneButton(q);
-    return;
-  }
-  if (q.type === "loop_yesno"){
-    renderLoopYesNo(q);
-    return;
-  }
+  if (q.type === "text") { renderText(q); return; }
+  if (q.type === "number") { renderNumber(q); return; }
+  if (q.type === "loop_yesno") { renderLoopYesNo(q); return; }
 }
 
-// ===== Ink blot helper =====
-function inkBlot(button){
-  button.classList.remove("inked");
-  // force reflow
-  void button.offsetWidth;
-  button.classList.add("inked");
+function enableToNote(noteText){
+  pendingNote = noteText || "";
+  nextBtn.disabled = false;
 }
 
-// ===== Choice =====
 function renderChoice(q){
   const wrap = document.createElement("div");
   wrap.className = "options";
@@ -341,9 +313,6 @@ function renderChoice(q){
     ink.className = "ink";
     b.appendChild(ink);
 
-    const current = answers[q.id];
-    if (current === i) b.classList.add("selected");
-
     b.addEventListener("click", () => {
       [...wrap.children].forEach(x => x.classList.remove("selected"));
       b.classList.add("selected");
@@ -352,11 +321,11 @@ function renderChoice(q){
       if (q.type === "gate_choice"){
         if (i === q.correctIndex){
           answers[q.id] = i;
-          queueHelper(q.okMsg);
-          nextBtn.disabled = false;
+          enableToNote(q.noteOk);
         } else {
           delete answers[q.id];
-          queueHelper(q.nopeMsg);
+          // keep Next disabled; but set a note for later if they get it right
+          pendingNote = q.noteNo;
           nextBtn.disabled = true;
         }
         return;
@@ -364,14 +333,15 @@ function renderChoice(q){
 
       if (q.type === "choice_reveal"){
         answers[q.id] = i;
-        queueHelper(q.revealMsg);
-        nextBtn.disabled = false;
+        enableToNote(q.revealNote);
         return;
       }
 
+      // normal choice
       answers[q.id] = i;
-      queueHelper(q.okMsg || "");
-      nextBtn.disabled = false;
+      const chosen = q.options[i];
+      const note = q.noteForChoice ? q.noteForChoice(chosen) : "";
+      enableToNote(note);
     });
 
     wrap.appendChild(b);
@@ -379,192 +349,32 @@ function renderChoice(q){
 
   card.appendChild(wrap);
 
-  if (answers[q.id] !== undefined && q.type !== "gate_choice"){
-    nextBtn.disabled = false;
+  // If already answered previously, allow Next -> note
+  if (answers[q.id] !== undefined){
+    // regenerate a note if possible
+    if (q.type === "choice" && q.noteForChoice){
+      const chosen = q.options[answers[q.id]];
+      pendingNote = q.noteForChoice(chosen);
+      nextBtn.disabled = false;
+    }
   }
 }
 
-// ===== Text =====
 function renderText(q){
   const ta = document.createElement("textarea");
   ta.className = "textbox";
   ta.rows = 4;
   ta.placeholder = q.placeholder || "";
-  ta.value = answers[q.id] || "";
 
   ta.addEventListener("input", () => {
     const v = ta.value.trim();
     const ok = v.length >= (q.minLen ?? 1);
     nextBtn.disabled = !ok;
-    if (ok && q.okMsg) queueHelper(q.okMsg);
-  });
-
-  card.appendChild(ta);
-
-  const v = (answers[q.id] || "").trim();
-  nextBtn.disabled = !(v.length >= (q.minLen ?? 1));
-}
-
-// ===== Number (digits only) =====
-function renderNumber(q){
-  const inp = document.createElement("input");
-  inp.className = "numBox";
-  inp.type = "text";
-  inp.inputMode = "numeric";
-  inp.placeholder = q.placeholder || "";
-  inp.value = answers[q.id] || "";
-
-  inp.addEventListener("input", () => {
-    inp.value = inp.value.replace(/[^\d]/g, "");
-    const v = inp.value.trim();
-    if (v.length > 0){
+    if (ok){
       answers[q.id] = v;
-      queueHelper(q.okMsg || "");
-      nextBtn.disabled = false;
-    } else {
-      delete answers[q.id];
-      queueHelper("Numbers only.");
-      nextBtn.disabled = true;
+      pendingNote = q.noteOk || "Noted.";
     }
   });
 
-  card.appendChild(inp);
-
-  const v = (answers[q.id] || "").trim();
-  nextBtn.disabled = !(v.length > 0);
+  card.appendChild(ta);
 }
-
-// ===== One-button =====
-function renderOneButton(q){
-  const wrap = document.createElement("div");
-  wrap.className = "options";
-
-  const b = document.createElement("button");
-  b.type = "button";
-  b.className = "opt";
-  b.textContent = q.buttonText || "Yes";
-
-  const ink = document.createElement("span");
-  ink.className = "ink";
-  b.appendChild(ink);
-
-  b.addEventListener("click", () => {
-    inkBlot(b);
-    answers[q.id] = true;
-    queueHelper("Good.");
-    setTimeout(() => goNext(), 360);
-  });
-
-  wrap.appendChild(b);
-  card.appendChild(wrap);
-  nextBtn.disabled = true;
-}
-
-// ===== Loop yes/no =====
-function renderLoopYesNo(q){
-  const wrap = document.createElement("div");
-  wrap.className = "options";
-
-  const yes = document.createElement("button");
-  yes.type = "button";
-  yes.className = "opt";
-  yes.textContent = q.yesText || "Yes";
-  yes.appendChild(Object.assign(document.createElement("span"), { className: "ink" }));
-
-  const no = document.createElement("button");
-  no.type = "button";
-  no.className = "opt";
-  no.textContent = q.noText || "No";
-  no.appendChild(Object.assign(document.createElement("span"), { className: "ink" }));
-
-  yes.addEventListener("click", () => {
-    inkBlot(yes);
-    answers[q.id] = "yes";
-    queueHelper("Then it’s settled.");
-    setTimeout(() => finish(), 340);
-  });
-
-  no.addEventListener("click", () => {
-    inkBlot(no);
-    delete answers[q.id];
-
-    // Since they do NOT move to the next page, show it immediately here
-    helper.textContent = q.noMsg;
-
-    nextBtn.disabled = true;
-    no.animate(
-      [{ transform: "translateX(0)" }, { transform: "translateX(-6px)" }, { transform: "translateX(6px)" }, { transform: "translateX(0)" }],
-      { duration: 240, easing: "ease-out" }
-    );
-  });
-
-  wrap.appendChild(yes);
-  wrap.appendChild(no);
-  card.appendChild(wrap);
-
-  nextBtn.disabled = true;
-}
-
-// ===== Navigation =====
-backBtn.addEventListener("click", () => {
-  idx = Math.max(0, idx - 1);
-  render();
-});
-nextBtn.addEventListener("click", () => goNext());
-
-function goNext(){
-  const q = questions[idx];
-
-  // Persist text/number values on Next
-  if (q.type === "text"){
-    const ta = card.querySelector("textarea");
-    const v = (ta?.value || "").trim();
-    if (v.length >= (q.minLen ?? 1)) answers[q.id] = v;
-  }
-  if (q.type === "number"){
-    const inp = card.querySelector("input");
-    const v = (inp?.value || "").trim();
-    if (v.length > 0) answers[q.id] = v;
-  }
-
-  if (idx >= questions.length - 1) return;
-  idx += 1;
-  render();
-}
-
-// ===== Finish =====
-function finish(){
-  const vibeQ = questions.find(x => x.id === "vibe");
-  const vibe = (answers.vibe !== undefined) ? vibeQ.options[answers.vibe] : "—";
-  const budget = answers.budget ? `$${answers.budget}` : "—";
-  const winter = answers.ideal_winter_date || "—";
-  const val = answers.valentine_word || "—";
-  const gift = answers.gift || "—";
-  const us = answers.us_thought || "—";
-
-  document.getElementById("finalTitle").textContent = `${GIRLFRIEND_NAME}, you’re my Valentine.`;
-  document.getElementById("finalBody").textContent =
-    "On February 14, I’m taking you out — not just for a date, but for a memory.\n" +
-    "Thank you for saying yes to me, and to us.";
-
-  document.getElementById("outVibe").textContent = vibe;
-  document.getElementById("outBudget").textContent = budget;
-  document.getElementById("outWinter").textContent = winter;
-  document.getElementById("outVal").textContent = val;
-  document.getElementById("outGift").textContent = gift;
-  document.getElementById("outUs").textContent = us;
-
-  showPanel(final);
-}
-
-// ===== Start flow =====
-startBtn.addEventListener("click", () => {
-  // Start music on user gesture, then move forward immediately
-  startMusic();
-  showPanel(quiz);
-  render();
-});
-
-// ===== Init =====
-showPanel(intro);
-musicBtn.textContent = "Music: Off";
