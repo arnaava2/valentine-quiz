@@ -47,12 +47,13 @@ body{
   inset:0;
   background: radial-gradient(520px 420px at var(--cx) var(--cy), rgba(255,255,255,.12), transparent 60%);
   mix-blend-mode: screen;
-  opacity:.92;
+  opacity:.85;
+  transition: opacity .2s ease;
 }
 .bgGrain{
   position:absolute;
   inset:0;
-  opacity:.22;
+  opacity:.25;
   mix-blend-mode: overlay;
   pointer-events:none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)' opacity='.18'/%3E%3C/svg%3E");
@@ -89,8 +90,8 @@ body{
   position:relative;
   display:grid;
   grid-template-columns: 1fr 28px 1fr;
-  box-shadow: var(--shadow);
   border-radius: 18px;
+  box-shadow: var(--shadow);
   overflow:hidden;
 }
 
@@ -130,7 +131,7 @@ body{
     linear-gradient(180deg, var(--paper), var(--paper2));
 }
 
-/* Page edge shading */
+/* Page edges shading */
 .page::after{
   content:"";
   position:absolute;
@@ -142,7 +143,8 @@ body{
   pointer-events:none;
 }
 .page.left::after{
-  right:auto; left:0;
+  right:auto;
+  left:0;
   background: linear-gradient(270deg, transparent, rgba(0,0,0,.06));
 }
 
@@ -303,8 +305,7 @@ body{
   border-radius: 14px;
   cursor:pointer;
   text-align:left;
-  transition: transform .12s ease, border-color .12s ease, background .12s ease;
-  overflow:hidden;
+  transition: transform .12s ease, border-color .12s ease, background .12s ease, box-shadow .12s ease;
 }
 .opt:hover{
   transform: translateY(-1px);
@@ -312,8 +313,9 @@ body{
   background: rgba(215,160,170,.14);
 }
 .opt.selected{
-  border-color: rgba(182,106,121,.72);
-  background: rgba(215,160,170,.18);
+  border-color: rgba(182,106,121,.85);
+  background: rgba(215,160,170,.22);
+  box-shadow: 0 10px 22px rgba(182,106,121,.10);
 }
 
 /* Ink blot */
@@ -378,9 +380,9 @@ body{
 .ghost:hover{ border-color: rgba(182,106,121,.35); }
 .primary:disabled, .ghost:disabled{ opacity:.45; cursor:not-allowed; }
 
-/* Notes (right page) */
+/* Notes */
 .noteTitle{
-  margin: 0 0 10px;
+  margin: 14px 0 8px;
   font-size: 16px;
   font-weight: 700;
 }
@@ -393,13 +395,92 @@ body{
 .noteRule{
   height:1px;
   background: rgba(26,20,18,.10);
-  margin: 18px 0 12px;
+  margin: 16px 0 10px;
 }
 .noteFooter{
   margin:0;
   color: rgba(26,20,18,.55);
   font-style: italic;
   line-height: 1.85;
+}
+
+/* ===== Carousel ===== */
+.carousel{
+  margin: 4px 0 6px;
+}
+.carouselFrame{
+  position: relative;
+  width: 100%;
+  height: 300px;
+  border-radius: 14px;
+  border: 1px solid rgba(26,20,18,.14);
+  background: rgba(255,255,255,.55);
+  overflow: hidden;
+}
+.carouselImg{
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display:block;
+  opacity: 1;
+  transform: scale(1.02);
+  filter: saturate(.96) contrast(.98);
+  transition: opacity .28s ease;
+}
+.carouselCaption{
+  position:absolute;
+  left: 10px;
+  right: 10px;
+  bottom: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(0,0,0,.28);
+  color: rgba(255,255,255,.92);
+  font-size: 12px;
+  letter-spacing: .10em;
+  text-transform: uppercase;
+  text-align:center;
+  backdrop-filter: blur(4px);
+  user-select:none;
+}
+.carouselBtn{
+  position:absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,.35);
+  background: rgba(0,0,0,.22);
+  color: rgba(255,255,255,.92);
+  cursor:pointer;
+  font-size: 22px;
+  line-height: 1;
+}
+.carouselBtn:hover{ background: rgba(0,0,0,.30); }
+.carouselBtn.left{ left: 10px; }
+.carouselBtn.right{ right: 10px; }
+
+.carouselDots{
+  display:flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content:center;
+  padding: 10px 4px 2px;
+}
+.dot{
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  border: 1px solid rgba(26,20,18,.22);
+  background: rgba(255,255,255,.55);
+  cursor:pointer;
+  transition: transform .12s ease, background .12s ease, border-color .12s ease;
+}
+.dot:hover{ transform: scale(1.12); }
+.dot.active{
+  background: rgba(182,106,121,.70);
+  border-color: rgba(182,106,121,.90);
 }
 
 /* Final grid */
@@ -441,5 +522,5 @@ body{
 @media (max-width: 980px){
   .bookSpread{ grid-template-columns: 1fr; }
   .spine{ display:none; }
-  .page{ min-height: auto; }
+  .page{ min-height:auto; }
 }
