@@ -2,7 +2,7 @@
 const GIRLFRIEND_NAME = "Madhura";
 document.getElementById("heroTitle").textContent = `${GIRLFRIEND_NAME}.`;
 
-// ===== Panels / Fade routing =====
+// ===== Panels =====
 const intro = document.getElementById("intro");
 const quiz = document.getElementById("quiz");
 const final = document.getElementById("final");
@@ -15,43 +15,55 @@ function showPanel(panelToShow){
 // ===== Music (continuous once started) =====
 const bgm = document.getElementById("bgm");
 const musicBtn = document.getElementById("musicBtn");
-
 let musicOn = false;
 
 async function startMusic(){
   try{
     bgm.volume = 0.75;
     bgm.muted = false;
-    await bgm.play(); // requires user gesture
+    await bgm.play(); // must be triggered by user gesture
     musicOn = true;
     musicBtn.textContent = "Music: On";
   }catch(e){
-    // If it fails, keep it off and let user try again
     musicOn = false;
-    musicBtn.textContent = "Music: Tap to enable";
+    musicBtn.textContent = "Music: Tap";
     console.error(e);
   }
 }
-
 function toggleMusic(){
   if (!musicOn){
     startMusic();
     return;
   }
-  // Minimalist: allow pause, but default experience is continuous.
   if (bgm.paused){
-    bgm.play().then(() => {
-      musicBtn.textContent = "Music: On";
-    }).catch(() => {
-      musicBtn.textContent = "Music: Tap to enable";
-    });
+    bgm.play().then(() => (musicBtn.textContent = "Music: On"))
+      .catch(() => (musicBtn.textContent = "Music: Tap"));
   } else {
     bgm.pause();
     musicBtn.textContent = "Music: Off";
   }
 }
-
 musicBtn.addEventListener("click", toggleMusic);
+
+// ===== Interactive moving background (parallax + mobile drift) =====
+const root = document.documentElement;
+
+function setParallax(x, y){
+  const px = (x - 0.5) * 22; // ~ -11..11
+  const py = (y - 0.5) * 18; // ~ -9..9
+  root.style.setProperty("--px", px.toFixed(1) + "px");
+  root.style.setProperty("--py", py.toFixed(1) + "px");
+}
+window.addEventListener("mousemove", (e) => {
+  setParallax(e.clientX / window.innerWidth, e.clientY / window.innerHeight);
+});
+let t = 0;
+setInterval(() => {
+  t += 0.008;
+  const x = 0.5 + Math.sin(t) * 0.08;
+  const y = 0.5 + Math.cos(t * 0.9) * 0.08;
+  setParallax(x, y);
+}, 60);
 
 // ===== Quiz data =====
 const questions = [
@@ -195,37 +207,55 @@ const questions = [
   }
 ];
 
-// ===== Quiz state =====
+// ===== State =====
 let idx = 0;
-const answers = {}; // { id: value }
+const answers = {}; // {id: value}
 
-// ===== DOM hooks =====
+// ===== DOM =====
 const startBtn = document.getElementById("startBtn");
 const card = document.getElementById("card");
 const helper = document.getElementById("helper");
 const backBtn = document.getElementById("backBtn");
 const nextBtn = document.getElementById("nextBtn");
 const progressText = document.getElementById("progressText");
+const pageLeft = document.getElementById("pageLeft");
+const pageRight = document.getElementById("pageRight");
+const chapterLine = document.getElementById("chapterLine");
+const chapterTitle = document.getElementById("chapterTitle");
 
-// ===== Start flow =====
-startBtn.addEventListener("click", async () => {
-  // This click counts as the user gesture: start music here
-  await startMusic();
+// ===== Footnote shows on NEXT page =====
+let pendingHelper = "";
+let lastShownHelper = "";
 
-  // Fade intro -> quiz
-  showPanel(quiz);
-  render();
-});
-
-// ===== Rendering with fade between questions =====
-function setHelper(text){
-  helper.textContent = text || "";
+function queueHelper(msg){
+  pendingHelper = msg || "";
 }
 
+function showQueuedHelper(){
+  if (pendingHelper && pendingHelper !== lastShownHelper){
+    helper.textContent = pendingHelper;
+    lastShownHelper = pendingHelper;
+  } else {
+    helper.textContent = "";
+  }
+  pendingHelper = "";
+}
+
+// ===== Chapter/page cosmetics =====
 function setProgress(){
   progressText.textContent = `${idx + 1} / ${questions.length}`;
+
+  // Page numbers: intro is page 1; quiz starts at page 2
+  const page = idx + 2;
+  pageLeft.textContent = `— ${page} —`;
+  pageRight.textContent = `— ${page} —`;
+
+  // Chapter titles: keep it subtle
+  chapterLine.textContent = "CHAPTER II";
+  chapterTitle.textContent = "A Gentle Examination";
 }
 
+// ===== Fade swap =====
 function fadeSwap(renderFn){
   card.classList.add("fadeOut");
   setTimeout(() => {
@@ -233,19 +263,23 @@ function fadeSwap(renderFn){
     card.classList.remove("fadeOut");
     card.classList.add("fadeIn");
     setTimeout(() => card.classList.remove("fadeIn"), 200);
-  }, 220);
+  }, 240);
 }
 
+// ===== Render =====
 function render(){
   setProgress();
-  setHelper("");
-
-  const q = questions[idx];
   backBtn.disabled = idx === 0;
   nextBtn.disabled = true;
   nextBtn.textContent = (idx === questions.length - 1) ? "Finish" : "Next";
 
-  fadeSwap(() => renderQuestion(q));
+  const q = questions[idx];
+
+  fadeSwap(() => {
+    renderQuestion(q);
+    // show previous question's note now (on this new page)
+    showQueuedHelper();
+  });
 }
 
 function renderQuestion(q){
@@ -284,6 +318,15 @@ function renderQuestion(q){
   }
 }
 
+// ===== Ink blot helper =====
+function inkBlot(button){
+  button.classList.remove("inked");
+  // force reflow
+  void button.offsetWidth;
+  button.classList.add("inked");
+}
+
+// ===== Choice =====
 function renderChoice(q){
   const wrap = document.createElement("div");
   wrap.className = "options";
@@ -294,39 +337,40 @@ function renderChoice(q){
     b.className = "opt";
     b.textContent = label;
 
+    const ink = document.createElement("span");
+    ink.className = "ink";
+    b.appendChild(ink);
+
     const current = answers[q.id];
     if (current === i) b.classList.add("selected");
 
     b.addEventListener("click", () => {
       [...wrap.children].forEach(x => x.classList.remove("selected"));
       b.classList.add("selected");
+      inkBlot(b);
 
-      // Gate choice: must be correct to proceed
       if (q.type === "gate_choice"){
         if (i === q.correctIndex){
           answers[q.id] = i;
-          setHelper(q.okMsg);
+          queueHelper(q.okMsg);
           nextBtn.disabled = false;
         } else {
           delete answers[q.id];
-          setHelper(q.nopeMsg);
+          queueHelper(q.nopeMsg);
           nextBtn.disabled = true;
         }
         return;
       }
 
-      // Choice reveal: always accept, but show reveal
       if (q.type === "choice_reveal"){
         answers[q.id] = i;
-        setHelper(q.revealMsg);
-        nextBtn.disabled = true;
-        setTimeout(() => { nextBtn.disabled = false; }, 700);
+        queueHelper(q.revealMsg);
+        nextBtn.disabled = false;
         return;
       }
 
-      // Normal choice
       answers[q.id] = i;
-      setHelper(q.okMsg || "");
+      queueHelper(q.okMsg || "");
       nextBtn.disabled = false;
     });
 
@@ -335,12 +379,12 @@ function renderChoice(q){
 
   card.appendChild(wrap);
 
-  // If already answered and not gate-blocked, allow Next
   if (answers[q.id] !== undefined && q.type !== "gate_choice"){
     nextBtn.disabled = false;
   }
 }
 
+// ===== Text =====
 function renderText(q){
   const ta = document.createElement("textarea");
   ta.className = "textbox";
@@ -352,7 +396,7 @@ function renderText(q){
     const v = ta.value.trim();
     const ok = v.length >= (q.minLen ?? 1);
     nextBtn.disabled = !ok;
-    if (ok && q.okMsg) setHelper(q.okMsg);
+    if (ok && q.okMsg) queueHelper(q.okMsg);
   });
 
   card.appendChild(ta);
@@ -361,6 +405,7 @@ function renderText(q){
   nextBtn.disabled = !(v.length >= (q.minLen ?? 1));
 }
 
+// ===== Number (digits only) =====
 function renderNumber(q){
   const inp = document.createElement("input");
   inp.className = "numBox";
@@ -374,11 +419,11 @@ function renderNumber(q){
     const v = inp.value.trim();
     if (v.length > 0){
       answers[q.id] = v;
-      setHelper(q.okMsg || "");
+      queueHelper(q.okMsg || "");
       nextBtn.disabled = false;
     } else {
       delete answers[q.id];
-      setHelper("Numbers only.");
+      queueHelper("Numbers only.");
       nextBtn.disabled = true;
     }
   });
@@ -389,6 +434,7 @@ function renderNumber(q){
   nextBtn.disabled = !(v.length > 0);
 }
 
+// ===== One-button =====
 function renderOneButton(q){
   const wrap = document.createElement("div");
   wrap.className = "options";
@@ -398,19 +444,23 @@ function renderOneButton(q){
   b.className = "opt";
   b.textContent = q.buttonText || "Yes";
 
+  const ink = document.createElement("span");
+  ink.className = "ink";
+  b.appendChild(ink);
+
   b.addEventListener("click", () => {
+    inkBlot(b);
     answers[q.id] = true;
-    setHelper("Good.");
-    // Auto-advance with a gentle pause
-    setTimeout(() => goNext(), 450);
+    queueHelper("Good.");
+    setTimeout(() => goNext(), 360);
   });
 
   wrap.appendChild(b);
   card.appendChild(wrap);
-
   nextBtn.disabled = true;
 }
 
+// ===== Loop yes/no =====
 function renderLoopYesNo(q){
   const wrap = document.createElement("div");
   wrap.className = "options";
@@ -419,22 +469,28 @@ function renderLoopYesNo(q){
   yes.type = "button";
   yes.className = "opt";
   yes.textContent = q.yesText || "Yes";
+  yes.appendChild(Object.assign(document.createElement("span"), { className: "ink" }));
 
   const no = document.createElement("button");
   no.type = "button";
   no.className = "opt";
   no.textContent = q.noText || "No";
+  no.appendChild(Object.assign(document.createElement("span"), { className: "ink" }));
 
   yes.addEventListener("click", () => {
+    inkBlot(yes);
     answers[q.id] = "yes";
-    setHelper("Then it’s settled.");
-    setTimeout(() => finish(), 350);
+    queueHelper("Then it’s settled.");
+    setTimeout(() => finish(), 340);
   });
 
   no.addEventListener("click", () => {
+    inkBlot(no);
     delete answers[q.id];
-    setHelper(q.noMsg);
-    // keep them here; no Next
+
+    // Since they do NOT move to the next page, show it immediately here
+    helper.textContent = q.noMsg;
+
     nextBtn.disabled = true;
     no.animate(
       [{ transform: "translateX(0)" }, { transform: "translateX(-6px)" }, { transform: "translateX(6px)" }, { transform: "translateX(0)" }],
@@ -454,13 +510,12 @@ backBtn.addEventListener("click", () => {
   idx = Math.max(0, idx - 1);
   render();
 });
-
 nextBtn.addEventListener("click", () => goNext());
 
 function goNext(){
   const q = questions[idx];
 
-  // Persist text/number on Next
+  // Persist text/number values on Next
   if (q.type === "text"){
     const ta = card.querySelector("textarea");
     const v = (ta?.value || "").trim();
@@ -477,9 +532,8 @@ function goNext(){
   render();
 }
 
-// ===== Finish (fade to final) =====
+// ===== Finish =====
 function finish(){
-  // Fill final outputs
   const vibeQ = questions.find(x => x.id === "vibe");
   const vibe = (answers.vibe !== undefined) ? vibeQ.options[answers.vibe] : "—";
   const budget = answers.budget ? `$${answers.budget}` : "—";
@@ -490,8 +544,8 @@ function finish(){
 
   document.getElementById("finalTitle").textContent = `${GIRLFRIEND_NAME}, you’re my Valentine.`;
   document.getElementById("finalBody").textContent =
-    `On February 14, I’m taking you out — not just for a date, but for a memory.\n` +
-    `Thank you for saying yes to me, and to us.`;
+    "On February 14, I’m taking you out — not just for a date, but for a memory.\n" +
+    "Thank you for saying yes to me, and to us.";
 
   document.getElementById("outVibe").textContent = vibe;
   document.getElementById("outBudget").textContent = budget;
@@ -503,6 +557,14 @@ function finish(){
   showPanel(final);
 }
 
-// ===== On load =====
+// ===== Start flow =====
+startBtn.addEventListener("click", () => {
+  // Start music on user gesture, then move forward immediately
+  startMusic();
+  showPanel(quiz);
+  render();
+});
+
+// ===== Init =====
 showPanel(intro);
 musicBtn.textContent = "Music: Off";
