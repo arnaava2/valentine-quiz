@@ -94,6 +94,13 @@ body{
   border-radius: 18px;
   box-shadow: var(--shadow);
   overflow:hidden;
+  transition: opacity .35s ease, transform .35s ease;
+}
+
+/* Full-spread “page turn” transition */
+.bookSpread.turning{
+  opacity:0;
+  transform: translateY(6px);
 }
 
 /* Spine */
@@ -274,10 +281,7 @@ body{
   flex-direction:column;
   justify-content:center;
   gap: 14px;
-  transition: opacity .45s ease, transform .45s ease;
 }
-.card.fadeOut{ opacity:0; transform: translateY(12px); }
-
 .qTitle{
   margin:0;
   font-size: 18px;
