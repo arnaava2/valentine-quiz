@@ -9,6 +9,14 @@
   </head>
 
   <body>
+    <!-- Moving background -->
+    <div class="bg" aria-hidden="true">
+      <div class="bgLayer bgLayer--one"></div>
+      <div class="bgLayer bgLayer--two"></div>
+      <div class="bgGrain"></div>
+    </div>
+
+    <!-- Continuous music (must be in repo root as song.mp3) -->
     <audio id="bgm" preload="auto" loop playsinline>
       <source src="song.mp3" type="audio/mpeg" />
       Your browser does not support audio.
@@ -17,27 +25,40 @@
     <main class="stage">
       <!-- INTRO -->
       <section class="panel is-active" id="intro" aria-live="polite">
-        <div class="center">
-          <p class="kicker">A private invite</p>
-          <h1 class="hero" id="heroTitle">Madhura.</h1>
-          <p class="sub">
-            I made something small for you.<br />
-            Keep the volume on.
-          </p>
+        <div class="frame book">
+          <div class="bookTop">
+            <p class="chapter">CHAPTER I</p>
+            <p class="chapterTitle">The Undersigned</p>
+          </div>
 
-          <button class="primary" id="startBtn" type="button">
-            Begin
-          </button>
+          <div class="center">
+            <p class="kicker">a private invite</p>
+            <h1 class="hero" id="heroTitle">Madhura.</h1>
+            <p class="sub">
+              I made something small for you.<br />
+              Keep the volume on.
+            </p>
 
-          <p class="fineprint" id="audioHint">
-            Tap “Begin” to start the music.
-          </p>
+            <button class="primary" id="startBtn" type="button">Begin</button>
+
+            <p class="fineprint" id="audioHint">
+              Tap “Begin” to start the music.
+            </p>
+          </div>
+
+          <div class="pageNumber left">— 1 —</div>
+          <div class="pageNumber right">— 1 —</div>
         </div>
       </section>
 
-      <!-- QUIZ (only thing that remains after intro) -->
+      <!-- QUIZ -->
       <section class="panel" id="quiz" aria-live="polite">
-        <div class="frame">
+        <div class="frame book">
+          <div class="bookTop">
+            <p class="chapter" id="chapterLine">CHAPTER II</p>
+            <p class="chapterTitle" id="chapterTitle">A Gentle Examination</p>
+          </div>
+
           <div class="topline">
             <span class="progressText" id="progressText">1 / 11</span>
 
@@ -46,56 +67,68 @@
             </button>
           </div>
 
-          <div class="card" id="card">
-            <!-- injected -->
-          </div>
+          <div class="card" id="card"></div>
 
           <div class="nav">
             <button class="ghost" id="backBtn" type="button" disabled>Back</button>
             <button class="primary" id="nextBtn" type="button" disabled>Next</button>
           </div>
 
-          <p class="fineprint" id="helper"></p>
+          <!-- Footnote / comment appears on NEXT page -->
+          <p class="fineprint footnote" id="helper"></p>
+
+          <div class="pageNumber left" id="pageLeft">— 2 —</div>
+          <div class="pageNumber right" id="pageRight">— 2 —</div>
         </div>
       </section>
 
       <!-- FINAL -->
       <section class="panel" id="final" aria-live="polite">
-        <div class="frame finalFrame">
-          <p class="kicker">Result</p>
-          <h2 class="finalTitle" id="finalTitle">You’re my Valentine.</h2>
-          <p class="finalBody" id="finalBody"></p>
-
-          <div class="finalGrid">
-            <div class="mini">
-              <div class="miniLabel">Vibe</div>
-              <div class="miniValue" id="outVibe">—</div>
-            </div>
-            <div class="mini">
-              <div class="miniLabel">Budget</div>
-              <div class="miniValue" id="outBudget">—</div>
-            </div>
-            <div class="mini wide">
-              <div class="miniLabel">Ideal winter date</div>
-              <div class="miniValue" id="outWinter">—</div>
-            </div>
-            <div class="mini wide">
-              <div class="miniLabel">When I say “Valentine”…</div>
-              <div class="miniValue" id="outVal">—</div>
-            </div>
-            <div class="mini wide">
-              <div class="miniLabel">Your gift</div>
-              <div class="miniValue" id="outGift">—</div>
-            </div>
-            <div class="mini wide">
-              <div class="miniLabel">Your words about us</div>
-              <div class="miniValue" id="outUs">—</div>
-            </div>
+        <div class="frame book">
+          <div class="bookTop">
+            <p class="chapter">CHAPTER III</p>
+            <p class="chapterTitle">A Conclusion I Already Knew</p>
           </div>
 
-          <p class="fineprint">
-            Keep this page. I want to read it with you.
-          </p>
+          <div class="finalWrap">
+            <p class="kicker">Result</p>
+            <h2 class="finalTitle" id="finalTitle">You’re my Valentine.</h2>
+            <p class="finalBody" id="finalBody"></p>
+
+            <div class="finalGrid">
+              <div class="mini">
+                <div class="miniLabel">Vibe</div>
+                <div class="miniValue" id="outVibe">—</div>
+              </div>
+              <div class="mini">
+                <div class="miniLabel">Budget</div>
+                <div class="miniValue" id="outBudget">—</div>
+              </div>
+              <div class="mini wide">
+                <div class="miniLabel">Ideal winter date</div>
+                <div class="miniValue" id="outWinter">—</div>
+              </div>
+              <div class="mini wide">
+                <div class="miniLabel">When I say “Valentine”…</div>
+                <div class="miniValue" id="outVal">—</div>
+              </div>
+              <div class="mini wide">
+                <div class="miniLabel">Your gift</div>
+                <div class="miniValue" id="outGift">—</div>
+              </div>
+              <div class="mini wide">
+                <div class="miniLabel">Your words about us</div>
+                <div class="miniValue" id="outUs">—</div>
+              </div>
+            </div>
+
+            <p class="fineprint footnote">
+              Keep this page. I want to read it with you.
+            </p>
+          </div>
+
+          <div class="pageNumber left">— ∞ —</div>
+          <div class="pageNumber right">— ∞ —</div>
         </div>
       </section>
     </main>
