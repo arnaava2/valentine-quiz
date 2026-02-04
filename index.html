@@ -4,11 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>For Madhura</title>
-
     <link rel="stylesheet" href="styles.css" />
-    <!-- Prevent favicon 404 noise -->
-    <link rel="icon" href="data:," />
-    <meta name="theme-color" content="#07070a" />
+    <link rel="icon" href="data:,">
   </head>
 
   <body>
@@ -103,14 +100,26 @@
 
           <div class="spine" aria-hidden="true"></div>
 
+          <!-- RIGHT PAGE: carousel + notes -->
           <div class="page right">
             <div class="pageHeader">
               <div class="chapter">MARGINALIA</div>
-              <div class="chapterTitle">A Note From The Undersigned</div>
+              <div class="chapterTitle">Photos & Notes</div>
             </div>
 
             <div class="pageBody">
-              <!-- Always separate note page content -->
+              <!-- Carousel -->
+              <div class="carousel" aria-label="Photo carousel">
+                <div class="carouselFrame">
+                  <img id="photoImg" class="carouselImg" alt="A memory" />
+                  <button id="photoPrev" class="carouselBtn left" type="button" aria-label="Previous photo">‹</button>
+                  <button id="photoNext" class="carouselBtn right" type="button" aria-label="Next photo">›</button>
+                  <div class="carouselCaption" id="photoCaption">—</div>
+                </div>
+                <div class="carouselDots" id="photoDots" aria-label="Photo navigation dots"></div>
+              </div>
+
+              <!-- Notes (shown only on NOTE mode, but area always exists) -->
               <p class="noteTitle" id="noteTitle">Turn a page…</p>
               <p class="noteBody" id="noteBody">
                 Your answers will leave little notes here — like bookmarks.
