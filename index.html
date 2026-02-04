@@ -5,18 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>A Little Book</title>
 
-  <!-- Cache-bust to avoid GitHub Pages serving old files -->
-  <link rel="stylesheet" href="styles.css?v=final3" />
+  <link rel="stylesheet" href="styles.css?v=final6" />
   <link rel="icon" href="data:,">
 </head>
 
 <body>
-  <!-- Cursor-reactive background -->
-  <div class="bg" aria-hidden="true">
-    <div class="bgAurora"></div>
-    <div class="bgSpot"></div>
-    <div class="bgGrain"></div>
-  </div>
+  <!-- Interactive blossom/rose background -->
+  <canvas id="petalCanvas" class="petalCanvas" aria-hidden="true"></canvas>
+  <div class="bgWash" aria-hidden="true"></div>
+  <div class="bgGrain" aria-hidden="true"></div>
 
   <!-- Background music (song.mp3 in repo root) -->
   <audio id="bgm" preload="auto" loop playsinline>
@@ -79,10 +76,9 @@
     <!-- QUIZ -->
     <section class="panel" id="quiz" aria-live="polite">
       <div class="openBook">
-        <!-- ✅ IMPORTANT: id="quizSpread" for full-spread page transitions -->
         <div class="bookSpread" id="quizSpread">
 
-          <!-- LEFT PAGE: question -->
+          <!-- LEFT PAGE -->
           <div class="page left">
             <div class="pageHeader">
               <div class="chapter" id="chapterLine">CHAPTER II</div>
@@ -108,7 +104,7 @@
 
           <div class="spine" aria-hidden="true"></div>
 
-          <!-- RIGHT PAGE: carousel + marginalia -->
+          <!-- RIGHT PAGE -->
           <div class="page right">
             <div class="pageHeader">
               <div class="chapter">MARGINALIA</div>
@@ -127,7 +123,6 @@
                 <div class="carouselDots" id="photoDots" aria-label="Photo navigation dots"></div>
               </div>
 
-              <!-- Notes area -->
               <p class="noteTitle" id="noteTitle">Turn a page…</p>
               <p class="noteBody" id="noteBody">Your answers will leave little notes here — like bookmarks.</p>
               <div class="noteRule"></div>
@@ -182,6 +177,11 @@
                   <div class="miniValue" id="outUs">—</div>
                 </div>
               </div>
+
+              <div class="sigSummary">
+                <span class="sigLabel">Signed:</span>
+                <span class="sigValue" id="sigOutput">—</span>
+              </div>
             </div>
 
             <div class="pageNum">— ∞ —</div>
@@ -192,13 +192,23 @@
           <div class="page right">
             <div class="pageHeader">
               <div class="chapter">SIGNED</div>
-              <div class="chapterTitle">The Undersigned</div>
+              <div class="chapterTitle">The Undersigned Requests</div>
             </div>
 
             <div class="pageBody">
               <p class="prose">This is me, asking properly:</p>
               <p class="bigLine">Will you be my Valentine?</p>
               <p class="prose faint">(If your answer is yes — I’m already smiling.)</p>
+
+              <div class="signatureBlock">
+                <div class="sigPrompt">Sign here (optional, but cute):</div>
+                <input id="sigInput" class="sigInput" type="text" placeholder="Your name / signature…" autocomplete="off" />
+                <div class="sigRow">
+                  <button id="sigBtn" class="primary sigBtn" type="button">Sign</button>
+                  <button id="sigClear" class="ghost sigClear" type="button">Clear</button>
+                </div>
+                <div class="sigHint">Don’t worry — this stays on your device only.</div>
+              </div>
             </div>
 
             <div class="pageNum">— ∞ —</div>
@@ -209,6 +219,6 @@
 
   </main>
 
-  <script src="script.js?v=final3"></script>
+  <script src="script.js?v=final6"></script>
 </body>
 </html>
