@@ -17,9 +17,14 @@
 
   function showPanel(panelEl) {
     [intro, quiz, final].forEach(function (p) {
-      if (p) p.classList.remove("is-active");
+      if (!p) return;
+      p.classList.remove("is-active");
+      p.classList.remove("active");
     });
-    if (panelEl) panelEl.classList.add("is-active");
+    if (panelEl) {
+      panelEl.classList.add("is-active");
+      panelEl.classList.add("active");
+    }
   }
 
   // ===== Cursor-reactive background =====
@@ -31,6 +36,7 @@
   window.addEventListener("mousemove", function (e) {
     setCursorVars(e.clientX / window.innerWidth, e.clientY / window.innerHeight);
   });
+
   // gentle drift if mouse is idle
   var drift = 0;
   setInterval(function () {
@@ -55,13 +61,12 @@
     if (!bgm) return Promise.resolve();
     bgm.volume = 0.75;
     bgm.muted = false;
-    // play may reject if user gesture missing; beginBtn supplies gesture
+
     return bgm.play().then(function () {
       musicOn = true;
       setMusicLabel();
     }).catch(function () {
       musicOn = false;
-      // still proceed with quiz; button can re-try
       if (musicBtn) musicBtn.textContent = "Music: Tap";
     });
   }
@@ -108,7 +113,7 @@
   // ===== Photos (15) =====
   var PHOTOS = [];
   for (var i = 1; i <= 15; i++) {
-    var n = String(i).padStart ? String(i).padStart(2, "0") : (i < 10 ? "0" + i : "" + i);
+    var n = (i < 10 ? "0" + i : "" + i);
     PHOTOS.push({ src: "photos/" + n + ".jpg", caption: "Memory " + i });
   }
   var CAPTIONS = [
@@ -190,7 +195,7 @@
   showPhoto(0, false);
   restartAutoAdvance();
 
-  // ===== Questions (ALL your specs included) =====
+  // ===== Questions (your full spec) =====
   var questions = [
     {
       id: "fell_date",
@@ -219,7 +224,8 @@
       options: ["Your honesty", "Your eyes", "Your smile", "Your tiny efforts"],
       revealNote:
         "All of them.\n\n" +
-        "Your honesty that feels safe.\nYour eyes that soften the world.\nYour smile that turns a bad day gentle.\nAnd your tiny efforts — the ones you think don’t matter — that matter the most.\n\n" +
+        "Your honesty that feels safe.\nYour eyes that soften the world.\nYour smile that turns a bad day gentle.\n" +
+        "And your tiny efforts — the ones you think don’t matter — that matter the most.\n\n" +
         "It’s always been all of you."
     },
     {
@@ -294,11 +300,11 @@
 
   // ===== State =====
   var idxQ = 0;
-  var mode = "question"; // "question" | "note"
+  var mode = "question"; // question -> note -> next question
   var pendingNote = "";
   var answers = {};
 
-  // ===== Progress / page numbers =====
+  // ===== Progress/page numbers =====
   function setProgress() {
     safeText(progressText, (idxQ + 1) + " / " + questions.length);
 
@@ -325,7 +331,7 @@
   function render() {
     setProgress();
 
-    // rotate photo gently with page turns
+    // rotate photos with page turns
     showPhoto((idxQ * 2 + (mode === "note" ? 1 : 0)) % PHOTOS.length, false);
 
     if (backBtn) backBtn.disabled = (idxQ === 0 && mode === "question");
@@ -344,16 +350,16 @@
     safeText(noteTitle, "A note, in the margin…");
     safeText(noteBody, pendingNote || "—");
     safeText(noteFooter, "Turn the page when you’re ready.");
-
     if (nextBtn) nextBtn.disabled = false;
 
     if (card) {
-      card.innerHTML = '<h3 class="qTitle">Pause here.</h3><p class="qPrompt">Some answers deserve a quiet beat.</p>';
+      card.innerHTML =
+        '<h3 class="qTitle">Pause here.</h3>' +
+        '<p class="qPrompt">Some answers deserve a quiet beat.</p>';
     }
   }
 
   function renderQuestion(q) {
-    // right-page note area stays “neutral” on question pages
     safeText(noteTitle, "Turn a page…");
     safeText(noteBody, "Your answers will leave little notes here — like bookmarks.");
     safeText(noteFooter, "—");
@@ -372,13 +378,10 @@
     card.appendChild(t);
     card.appendChild(p);
 
-    if (q.type === "gate_choice" || q.type === "choice" || q.type === "choice_reveal") {
-      renderChoice(q);
-      return;
-    }
-    if (q.type === "text") { renderText(q); return; }
-    if (q.type === "number") { renderNumber(q); return; }
-    if (q.type === "loop_yesno") { renderYesNo(q); return; }
+    if (q.type === "gate_choice" || q.type === "choice" || q.type === "choice_reveal") return renderChoice(q);
+    if (q.type === "text") return renderText(q);
+    if (q.type === "number") return renderNumber(q);
+    if (q.type === "loop_yesno") return renderYesNo(q);
   }
 
   function enableToNote(noteText) {
@@ -397,7 +400,6 @@
       b.textContent = label;
 
       b.addEventListener("click", function () {
-        // select styling
         Array.prototype.forEach.call(wrap.children, function (x) { x.classList.remove("selected"); });
         b.classList.add("selected");
 
@@ -419,7 +421,6 @@
           return;
         }
 
-        // normal choice
         answers[q.id] = i;
         var note = q.noteForChoice ? q.noteForChoice(q.options[i]) : "";
         enableToNote(note);
@@ -486,7 +487,7 @@
     validate();
   }
 
-  // FIXED: last question selection always visually selects, then forces note page.
+  // FIXED: last question selection always works, No loops back
   function renderYesNo(q) {
     var wrap = document.createElement("div");
     wrap.className = "options";
@@ -511,42 +512,28 @@
       select(yes);
       answers[q.id] = "yes";
       pendingNote = q.yesNote;
-      // move to note page automatically
-      setTimeout(function () {
-        mode = "note";
-        render();
-      }, 180);
+      setTimeout(function () { mode = "note"; render(); }, 180);
     });
 
     no.addEventListener("click", function () {
       select(no);
       delete answers[q.id];
       pendingNote = q.noNote;
-      // move to note page automatically
-      setTimeout(function () {
-        mode = "note";
-        render();
-      }, 180);
+      setTimeout(function () { mode = "note"; render(); }, 180);
     });
 
     wrap.appendChild(yes);
     wrap.appendChild(no);
     card.appendChild(wrap);
 
-    // restore yes state
     if (answers[q.id] === "yes") yes.classList.add("selected");
-
     if (nextBtn) nextBtn.disabled = true;
   }
 
   // ===== Navigation =====
   if (backBtn) {
     backBtn.addEventListener("click", function () {
-      if (mode === "note") {
-        mode = "question";
-        render();
-        return;
-      }
+      if (mode === "note") { mode = "question"; return render(); }
       idxQ = Math.max(0, idxQ - 1);
       mode = "question";
       render();
@@ -567,9 +554,8 @@
       // note -> next question (or loop)
       mode = "question";
 
-      // loop last question until yes
       if (q.id === "valentine_yes" && answers[q.id] !== "yes") {
-        render(); // same question again
+        render(); // loop until yes
         return;
       }
 
@@ -585,8 +571,11 @@
 
   // ===== Finish =====
   function finish() {
-    // pull answers into summary
-    var vibeQ = questions.find ? questions.find(function (x) { return x.id === "vibe"; }) : null;
+    var vibeQ = null;
+    for (var i = 0; i < questions.length; i++) {
+      if (questions[i].id === "vibe") { vibeQ = questions[i]; break; }
+    }
+
     var vibe = (answers.vibe !== undefined && vibeQ) ? vibeQ.options[answers.vibe] : "—";
     var budget = answers.budget ? ("$" + answers.budget) : "—";
     var winter = answers.ideal_winter_date || "—";
@@ -613,7 +602,7 @@
   // ===== Start =====
   if (beginBtn) {
     beginBtn.addEventListener("click", function () {
-      // start music (best effort) and begin quiz
+      // proceed even if music can't autoplay
       startMusic().finally(function () {
         showPanel(quiz);
         idxQ = 0;
