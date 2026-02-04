@@ -68,13 +68,15 @@ body{
   padding: 26px 14px;
 }
 
+/* Panels fade */
 .panel{
   display:none;
   opacity:0;
   transform: translateY(10px);
   transition: opacity .55s ease, transform .55s ease;
 }
-.panel.is-active{
+.panel.is-active,
+.panel.active{
   display:block;
   opacity:1;
   transform: translateY(0);
@@ -324,6 +326,7 @@ body{
   font-size: 15px;
   line-height: 1.9;
   color: var(--ink);
+  resize: vertical;
 }
 .textbox::placeholder, .numBox::placeholder{ color: rgba(26,20,18,.42); }
 
