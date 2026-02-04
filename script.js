@@ -36,7 +36,6 @@
   window.addEventListener("mousemove", function (e) {
     setCursorVars(e.clientX / window.innerWidth, e.clientY / window.innerHeight);
   });
-
   // gentle drift if mouse is idle
   var drift = 0;
   setInterval(function () {
@@ -103,6 +102,9 @@
   var noteBody = $("noteBody");
   var noteFooter = $("noteFooter");
 
+  // Full-spread transition target
+  var quizSpread = $("quizSpread");
+
   // ===== Carousel DOM =====
   var photoImg = $("photoImg");
   var photoCaption = $("photoCaption");
@@ -110,31 +112,32 @@
   var photoNext = $("photoNext");
   var photoDots = $("photoDots");
 
-  // ===== Photos (15) =====
+  // ===== Photos (15) — filenames are 1..15 =====
   var PHOTOS = [];
   for (var i = 1; i <= 15; i++) {
-    var n = (i < 10 ? "0" + i : "" + i);
-    PHOTOS.push({ src: "photos/" + n + ".jpg", caption: "Memory " + i });
+    PHOTOS.push({ src: "photos/" + i + ".jpg", caption: "Memory " + i });
   }
-  var CAPTIONS = [
-    "A page I keep rereading",
-    "My favourite kind of calm",
-    "Us — quietly perfect",
-    "Where I want to be",
-    "Soft moments, loud feelings",
-    "A little forever in one frame",
-    "You, as you are",
-    "A small happiness I keep",
-    "The kind of love I trust",
-    "Easy, warm, true",
-    "A chapter I’m grateful for",
-    "Proof that life is sweet",
-    "The way you make days gentle",
-    "More of this, always",
-    "My favourite ending (and beginning)"
-  ];
-  PHOTOS.forEach(function (p, idx) { p.caption = CAPTIONS[idx] || p.caption; });
 
+  // Captions based on YOUR actual photos (flirty/cute/funny)
+  var CAPTIONS = [
+    "Sun, snacks, and you being the main character.",
+    "Two cuties, one parking lot — romcom vibes unlocked.",
+    "Mirror check: illegal to look this good (yes, I’m looking at you).",
+    "Your smile: my favorite notification.",
+    "Proof that grass is greener when you’re on it (with me).",
+    "Traditional outfit, modern problem: I’m obsessed.",
+    "If “home” had a photo, it’d look like this.",
+    "Green flag in green. (Coincidence? I think not.)",
+    "Holding you like I’m never letting go (because I’m not).",
+    "How are you real? (respectfully, I’m in trouble.)",
+    "That “we’re cute and we know it” chapter.",
+    "Mirror says: couple goals. I agree.",
+    "Date night + cozy lights = my favorite equation.",
+    "Flight mode on. Feelings mode still very on.",
+    "Window seat, golden light, and you — cinema."
+  ];
+
+  PHOTOS.forEach(function (p, idx) { p.caption = CAPTIONS[idx] || p.caption; });
   // preload
   PHOTOS.forEach(function (p) { var im = new Image(); im.src = p.src; });
 
@@ -150,9 +153,7 @@
         btn.type = "button";
         btn.className = "dot";
         btn.setAttribute("aria-label", "Photo " + (k + 1));
-        btn.addEventListener("click", function () {
-          showPhoto(k, true);
-        });
+        btn.addEventListener("click", function () { showPhoto(k, true); });
         photoDots.appendChild(btn);
       })(d);
     }
@@ -168,9 +169,7 @@
 
   function restartAutoAdvance() {
     if (autoTimer) clearInterval(autoTimer);
-    autoTimer = setInterval(function () {
-      showPhoto(photoIndex + 1, false);
-    }, 5500);
+    autoTimer = setInterval(function () { showPhoto(photoIndex + 1, false); }, 5500);
   }
 
   function showPhoto(i, userInitiated) {
@@ -194,6 +193,22 @@
   buildDots();
   showPhoto(0, false);
   restartAutoAdvance();
+
+  // ===== Page-turn transition wrapper =====
+  function fadeSwap(fn) {
+    // Prefer full-spread “turn” if available, fallback to card swap
+    if (quizSpread) {
+      quizSpread.classList.add("turning");
+      setTimeout(function () {
+        fn();
+        quizSpread.classList.remove("turning");
+      }, 260);
+      return;
+    }
+    if (!card) { fn(); return; }
+    // fallback: instant
+    fn();
+  }
 
   // ===== Questions (your full spec) =====
   var questions = [
@@ -304,7 +319,6 @@
   var pendingNote = "";
   var answers = {};
 
-  // ===== Progress/page numbers =====
   function setProgress() {
     safeText(progressText, (idxQ + 1) + " / " + questions.length);
 
@@ -318,16 +332,6 @@
     safeText(chapterTitle, (mode === "question") ? "A Gentle Examination" : "A Note From The Undersigned");
   }
 
-  function fadeSwap(fn) {
-    if (!card) { fn(); return; }
-    card.classList.add("fadeOut");
-    setTimeout(function () {
-      fn();
-      card.classList.remove("fadeOut");
-    }, 220);
-  }
-
-  // ===== Rendering =====
   function render() {
     setProgress();
 
@@ -487,7 +491,6 @@
     validate();
   }
 
-  // FIXED: last question selection always works, No loops back
   function renderYesNo(q) {
     var wrap = document.createElement("div");
     wrap.className = "options";
@@ -569,7 +572,6 @@
     });
   }
 
-  // ===== Finish =====
   function finish() {
     var vibeQ = null;
     for (var i = 0; i < questions.length; i++) {
