@@ -378,3 +378,143 @@ function renderText(q){
 
   card.appendChild(ta);
 }
+
+function renderNumber(q){
+  const inp = document.createElement("input");
+  inp.className = "numBox";
+  inp.type = "text";
+  inp.inputMode = "numeric";
+  inp.placeholder = q.placeholder || "";
+
+  inp.addEventListener("input", () => {
+    inp.value = inp.value.replace(/[^\d]/g, "");
+    const v = inp.value.trim();
+    if (v.length > 0){
+      answers[q.id] = v;
+      pendingNote = q.noteOk || "Understood.";
+      nextBtn.disabled = false;
+    } else {
+      nextBtn.disabled = true;
+    }
+  });
+
+  card.appendChild(inp);
+}
+
+function renderLoopYesNo(q){
+  const wrap = document.createElement("div");
+  wrap.className = "options";
+
+  const yes = document.createElement("button");
+  yes.type = "button";
+  yes.className = "opt";
+  yes.textContent = q.yesText || "Yes.";
+  yes.appendChild(Object.assign(document.createElement("span"), { className: "ink" }));
+
+  const no = document.createElement("button");
+  no.type = "button";
+  no.className = "opt";
+  no.textContent = q.noText || "No.";
+  no.appendChild(Object.assign(document.createElement("span"), { className: "ink" }));
+
+  yes.addEventListener("click", () => {
+    inkBlot(yes);
+    answers[q.id] = "yes";
+    pendingNote = q.yesNote;
+    nextBtn.disabled = false;
+  });
+
+  no.addEventListener("click", () => {
+    inkBlot(no);
+    // Force a NOTE page first, then loop back to same question
+    delete answers[q.id];
+    pendingNote = q.noNote;
+    nextBtn.disabled = false;
+  });
+
+  wrap.appendChild(yes);
+  wrap.appendChild(no);
+  card.appendChild(wrap);
+
+  nextBtn.disabled = true;
+}
+
+// ===== Navigation logic (Question <-> Note) =====
+backBtn.addEventListener("click", () => {
+  if (mode === "note"){
+    // Go back to question page (same question)
+    mode = "question";
+    render();
+    return;
+  }
+  idx = Math.max(0, idx - 1);
+  mode = "question";
+  render();
+});
+
+nextBtn.addEventListener("click", () => {
+  const q = questions[idx];
+
+  if (mode === "question"){
+    // Move to NOTE page (always separate)
+    mode = "note";
+    render();
+    return;
+  }
+
+  // mode === note: turn page to next question or finish
+  mode = "question";
+
+  // Special: if last question is valentine_yes and answer was not yes, loop back
+  if (q.id === "valentine_yes" && answers[q.id] !== "yes"){
+    render();
+    return;
+  }
+
+  if (idx >= questions.length - 1){
+    finish();
+    return;
+  }
+
+  idx += 1;
+  render();
+});
+
+// ===== Finish =====
+function finish(){
+  const vibeQ = questions.find(x => x.id === "vibe");
+  const vibe = (answers.vibe !== undefined) ? vibeQ.options[answers.vibe] : "—";
+  const budget = answers.budget ? `$${answers.budget}` : "—";
+  const winter = answers.ideal_winter_date || "—";
+  const val = answers.valentine_word || "—";
+  const gift = answers.gift || "—";
+  const us = answers.us_words || "—";
+
+  document.getElementById("finalTitle").textContent = `${GIRLFRIEND_NAME}, you’re my Valentine.`;
+  document.getElementById("finalBody").textContent =
+    "On February 14, I’m taking you out — not just for a date, but for a memory.\n" +
+    "Thank you for turning these pages with me.";
+
+  document.getElementById("outVibe").textContent = vibe;
+  document.getElementById("outBudget").textContent = budget;
+  document.getElementById("outWinter").textContent = winter;
+  document.getElementById("outVal").textContent = val;
+  document.getElementById("outGift").textContent = gift;
+  document.getElementById("outUs").textContent = us;
+
+  showPanel(final);
+}
+
+// ===== Start flow =====
+startBtn.addEventListener("click", () => {
+  startMusic(); // user gesture => works
+  showPanel(quiz);
+  idx = 0;
+  mode = "question";
+  pendingNote = "";
+  render();
+});
+
+// ===== Init =====
+showPanel(intro);
+musicBtn.textContent = "Music: Off";
