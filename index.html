@@ -4,7 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>A Little Book</title>
-  <link rel="stylesheet" href="styles.css?v=final1" />
+
+  <!-- Cache-bust to avoid GitHub Pages serving old files -->
+  <link rel="stylesheet" href="styles.css?v=final3" />
   <link rel="icon" href="data:,">
 </head>
 
@@ -16,7 +18,7 @@
     <div class="bgGrain"></div>
   </div>
 
-  <!-- Music -->
+  <!-- Background music (song.mp3 in repo root) -->
   <audio id="bgm" preload="auto" loop playsinline>
     <source src="song.mp3" type="audio/mpeg" />
   </audio>
@@ -77,7 +79,9 @@
     <!-- QUIZ -->
     <section class="panel" id="quiz" aria-live="polite">
       <div class="openBook">
-        <div class="bookSpread">
+        <!-- ✅ IMPORTANT: id="quizSpread" for full-spread page transitions -->
+        <div class="bookSpread" id="quizSpread">
+
           <!-- LEFT PAGE: question -->
           <div class="page left">
             <div class="pageHeader">
@@ -108,7 +112,7 @@
           <div class="page right">
             <div class="pageHeader">
               <div class="chapter">MARGINALIA</div>
-              <div class="chapterTitle">Photos & Notes</div>
+              <div class="chapterTitle">PHOTOS & NOTES</div>
             </div>
 
             <div class="pageBody">
@@ -132,6 +136,7 @@
 
             <div class="pageNum" id="pageNumRight">— 4 —</div>
           </div>
+
         </div>
       </div>
     </section>
@@ -204,6 +209,6 @@
 
   </main>
 
-  <script src="script.js?v=final1"></script>
+  <script src="script.js?v=final3"></script>
 </body>
 </html>
