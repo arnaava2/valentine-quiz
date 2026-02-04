@@ -1,204 +1,59 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>For Madhura</title>
-    <link rel="stylesheet" href="styles.css" />
-    <link rel="icon" href="data:,">
-  </head>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>A Little Book</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" href="data:,">
+</head>
 
-  <body>
-    <!-- Cursor-reactive background -->
-    <div class="bg" aria-hidden="true">
-      <div class="bgAurora"></div>
-      <div class="bgSpot"></div>
-      <div class="bgGrain"></div>
+<body>
+  <!-- Background -->
+  <div class="bg"></div>
+
+  <!-- Music -->
+  <audio id="bgm" loop>
+    <source src="song.mp3" type="audio/mpeg">
+  </audio>
+
+  <!-- INTRO -->
+  <section id="intro" class="panel active">
+    <div class="book">
+      <h1>Madhura.</h1>
+      <p>This is a small book.<br>One page at a time — just for you.</p>
+      <button id="beginBtn">Begin</button>
     </div>
+  </section>
 
-    <!-- Music (song.mp3 must be in repo root) -->
-    <audio id="bgm" preload="auto" loop playsinline>
-      <source src="song.mp3" type="audio/mpeg" />
-      Your browser does not support audio.
-    </audio>
+  <!-- QUIZ -->
+  <section id="quiz" class="panel">
+    <div class="spread">
+      <!-- Left page -->
+      <div class="page">
+        <div id="question"></div>
+        <div id="options"></div>
+        <button id="nextBtn" disabled>Turn Page</button>
+      </div>
 
-    <main class="stage">
-      <!-- INTRO -->
-      <section class="openBook panel is-active" id="intro" aria-live="polite">
-        <div class="bookSpread">
-          <div class="page left">
-            <div class="pageHeader">
-              <div class="chapter">CHAPTER I</div>
-              <div class="chapterTitle">The Invitation</div>
-            </div>
-
-            <div class="pageBody center">
-              <p class="kicker">for</p>
-              <h1 class="hero" id="heroTitle">Madhura.</h1>
-              <p class="sub">
-                I made this like a little book.<br />
-                One page at a time — just for you.
-              </p>
-
-              <button class="primary" id="startBtn" type="button">Begin</button>
-              <p class="hint">Tap “Begin” to start the music.</p>
-            </div>
-
-            <div class="pageNum">— 1 —</div>
-          </div>
-
-          <div class="spine" aria-hidden="true"></div>
-
-          <div class="page right">
-            <div class="pageHeader">
-              <div class="chapter">A SMALL DISCLAIMER</div>
-              <div class="chapterTitle">Before You Turn The Page</div>
-            </div>
-
-            <div class="pageBody">
-              <p class="prose">
-                Read slowly.<br />
-                Smile if you want to.<br />
-                And if you ever feel like the answer is “all of the above” —
-                that’s probably because it is.
-              </p>
-              <p class="prose faint">
-                (The undersigned has been known to be hopelessly certain about you.)
-              </p>
-            </div>
-
-            <div class="pageNum">— 2 —</div>
-          </div>
+      <!-- Right page -->
+      <div class="page">
+        <div class="carousel">
+          <img id="photo" />
         </div>
-      </section>
+        <p id="note">—</p>
+      </div>
+    </div>
+  </section>
 
-      <!-- QUIZ -->
-      <section class="openBook panel" id="quiz" aria-live="polite">
-        <div class="bookSpread">
-          <div class="page left">
-            <div class="pageHeader">
-              <div class="chapter" id="chapterLine">CHAPTER II</div>
-              <div class="chapterTitle" id="chapterTitle">A Gentle Examination</div>
-            </div>
+  <!-- FINAL -->
+  <section id="final" class="panel">
+    <div class="book">
+      <h2>You’re my Valentine.</h2>
+      <p>February 14 is ours.</p>
+    </div>
+  </section>
 
-            <div class="topline">
-              <span class="progress" id="progressText">1 / 9</span>
-              <button class="linkBtn" id="musicBtn" type="button">Music: Off</button>
-            </div>
-
-            <div class="pageBody">
-              <div class="card" id="card"></div>
-
-              <div class="nav">
-                <button class="ghost" id="backBtn" type="button" disabled>Back</button>
-                <button class="primary" id="nextBtn" type="button" disabled>Next</button>
-              </div>
-            </div>
-
-            <div class="pageNum" id="pageNumLeft">— 3 —</div>
-          </div>
-
-          <div class="spine" aria-hidden="true"></div>
-
-          <!-- RIGHT PAGE: carousel + notes -->
-          <div class="page right">
-            <div class="pageHeader">
-              <div class="chapter">MARGINALIA</div>
-              <div class="chapterTitle">Photos & Notes</div>
-            </div>
-
-            <div class="pageBody">
-              <!-- Carousel -->
-              <div class="carousel" aria-label="Photo carousel">
-                <div class="carouselFrame">
-                  <img id="photoImg" class="carouselImg" alt="A memory" />
-                  <button id="photoPrev" class="carouselBtn left" type="button" aria-label="Previous photo">‹</button>
-                  <button id="photoNext" class="carouselBtn right" type="button" aria-label="Next photo">›</button>
-                  <div class="carouselCaption" id="photoCaption">—</div>
-                </div>
-                <div class="carouselDots" id="photoDots" aria-label="Photo navigation dots"></div>
-              </div>
-
-              <!-- Notes (shown only on NOTE mode, but area always exists) -->
-              <p class="noteTitle" id="noteTitle">Turn a page…</p>
-              <p class="noteBody" id="noteBody">
-                Your answers will leave little notes here — like bookmarks.
-              </p>
-
-              <div class="noteRule"></div>
-              <p class="noteFooter" id="noteFooter">—</p>
-            </div>
-
-            <div class="pageNum" id="pageNumRight">— 4 —</div>
-          </div>
-        </div>
-      </section>
-
-      <!-- FINAL -->
-      <section class="openBook panel" id="final" aria-live="polite">
-        <div class="bookSpread">
-          <div class="page left">
-            <div class="pageHeader">
-              <div class="chapter">CHAPTER III</div>
-              <div class="chapterTitle">A Conclusion I Already Knew</div>
-            </div>
-
-            <div class="pageBody">
-              <p class="kicker">result</p>
-              <h2 class="finalTitle" id="finalTitle">You’re my Valentine.</h2>
-              <p class="finalBody" id="finalBody"></p>
-
-              <div class="grid">
-                <div class="mini">
-                  <div class="miniLabel">Vibe</div>
-                  <div class="miniValue" id="outVibe">—</div>
-                </div>
-                <div class="mini">
-                  <div class="miniLabel">Budget</div>
-                  <div class="miniValue" id="outBudget">—</div>
-                </div>
-                <div class="mini wide">
-                  <div class="miniLabel">Ideal winter date</div>
-                  <div class="miniValue" id="outWinter">—</div>
-                </div>
-                <div class="mini wide">
-                  <div class="miniLabel">When I say “Valentine”…</div>
-                  <div class="miniValue" id="outVal">—</div>
-                </div>
-                <div class="mini wide">
-                  <div class="miniLabel">Your gift</div>
-                  <div class="miniValue" id="outGift">—</div>
-                </div>
-                <div class="mini wide">
-                  <div class="miniLabel">Your words</div>
-                  <div class="miniValue" id="outUs">—</div>
-                </div>
-              </div>
-            </div>
-
-            <div class="pageNum">— ∞ —</div>
-          </div>
-
-          <div class="spine" aria-hidden="true"></div>
-
-          <div class="page right">
-            <div class="pageHeader">
-              <div class="chapter">SIGNED</div>
-              <div class="chapterTitle">The Undersigned</div>
-            </div>
-
-            <div class="pageBody">
-              <p class="prose">This is me, asking properly:</p>
-              <p class="bigLine">Will you be my Valentine?</p>
-              <p class="prose faint">(If your answer is yes — I’m already smiling.)</p>
-            </div>
-
-            <div class="pageNum">— ∞ —</div>
-          </div>
-        </div>
-      </section>
-    </main>
-
-    <script src="script.js"></script>
-  </body>
+  <script src="script.js"></script>
+</body>
 </html>
