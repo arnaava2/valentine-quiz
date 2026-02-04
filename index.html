@@ -4,8 +4,11 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>For Madhura</title>
+
     <link rel="stylesheet" href="styles.css" />
-    <meta name="theme-color" content="#0b0b0f" />
+    <!-- Prevent favicon 404 noise -->
+    <link rel="icon" href="data:," />
+    <meta name="theme-color" content="#07070a" />
   </head>
 
   <body>
@@ -23,6 +26,7 @@
     </audio>
 
     <main class="stage">
+      <!-- INTRO -->
       <section class="openBook panel is-active" id="intro" aria-live="polite">
         <div class="bookSpread">
           <div class="page left">
@@ -71,6 +75,7 @@
         </div>
       </section>
 
+      <!-- QUIZ -->
       <section class="openBook panel" id="quiz" aria-live="polite">
         <div class="bookSpread">
           <div class="page left">
@@ -80,12 +85,13 @@
             </div>
 
             <div class="topline">
-              <span class="progress" id="progressText">1 / 11</span>
+              <span class="progress" id="progressText">1 / 9</span>
               <button class="linkBtn" id="musicBtn" type="button">Music: Off</button>
             </div>
 
             <div class="pageBody">
               <div class="card" id="card"></div>
+
               <div class="nav">
                 <button class="ghost" id="backBtn" type="button" disabled>Back</button>
                 <button class="primary" id="nextBtn" type="button" disabled>Next</button>
@@ -104,7 +110,7 @@
             </div>
 
             <div class="pageBody">
-              <!-- This is ALWAYS a separate page. -->
+              <!-- Always separate note page content -->
               <p class="noteTitle" id="noteTitle">Turn a page…</p>
               <p class="noteBody" id="noteBody">
                 Your answers will leave little notes here — like bookmarks.
@@ -119,6 +125,7 @@
         </div>
       </section>
 
+      <!-- FINAL -->
       <section class="openBook panel" id="final" aria-live="polite">
         <div class="bookSpread">
           <div class="page left">
@@ -172,15 +179,9 @@
             </div>
 
             <div class="pageBody">
-              <p class="prose">
-                This is me, asking properly:
-              </p>
-              <p class="bigLine">
-                Will you be my Valentine?
-              </p>
-              <p class="prose faint">
-                (If your answer is yes — I’m already smiling.)
-              </p>
+              <p class="prose">This is me, asking properly:</p>
+              <p class="bigLine">Will you be my Valentine?</p>
+              <p class="prose faint">(If your answer is yes — I’m already smiling.)</p>
             </div>
 
             <div class="pageNum">— ∞ —</div>
