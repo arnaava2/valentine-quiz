@@ -9,9 +9,9 @@
   function $(id) { return document.getElementById(id); }
   function safeText(el, value) { if (el) el.textContent = value; }
 
-  // =========================
-  // Cherry Blossom Tree Canvas
-  // =========================
+  // ==========================================
+  // Classic Cherry Blossom Petals (Canvas BG)
+  // ==========================================
   var canvas = $("petalCanvas");
   var ctx = canvas ? canvas.getContext("2d") : null;
   var W = 0, H = 0;
@@ -20,7 +20,7 @@
   var lastT = 0;
 
   function resizeCanvas(){
-    if (!canvas) return;
+    if (!canvas || !ctx) return;
     var dpr = Math.min(2, window.devicePixelRatio || 1);
     W = Math.floor(window.innerWidth);
     H = Math.floor(window.innerHeight);
@@ -32,96 +32,31 @@
   }
   function rand(a,b){ return a + Math.random()*(b-a); }
 
-  // Tree anchor on left
-  function treeAnchor(){
-    return { x: Math.max(110, W * 0.14), y: Math.max(180, H * 0.28) };
-  }
-
-  function makePetal(fromTree){
-    var t = treeAnchor();
-    var startX = fromTree ? rand(t.x - 30, t.x + 160) : rand(-60, W + 60);
-    var startY = fromTree ? rand(t.y - 90, t.y + 140) : rand(-40, H + 40);
-
+  function makePetal(spawnTop){
+    var size = rand(8, 18);
     return {
-      x: startX,
-      y: startY,
-      vx: rand(-8, 12),
-      vy: rand(24, 58),
+      x: rand(-60, W + 60),
+      y: spawnTop ? rand(-H, -40) : rand(-40, H + 40),
+      vx: rand(-10, 12),
+      vy: rand(22, 62),
       rot: rand(0, Math.PI * 2),
-      vr: rand(-1.3, 1.3),
+      vr: rand(-1.4, 1.4),
       wob: rand(0, Math.PI * 2),
-      wobSpd: rand(0.6, 1.6),
-      size: rand(8, 16),
-      alpha: rand(0.55, 0.9),
-      fromTree: fromTree ? 1 : 0
+      wobSpd: rand(0.6, 1.8),
+      size: size,
+      alpha: rand(0.45, 0.92)
     };
   }
 
   function seedPetals(){
+    if (!ctx) return;
     petals = [];
-    var count = Math.min(105, Math.max(65, Math.floor((W*H)/20000)));
+    var count = Math.min(120, Math.max(70, Math.floor((W*H)/19000)));
     for (var i=0;i<count;i++){
-      var fromTree = Math.random() < 0.75;
-      var p = makePetal(fromTree);
-      if (!fromTree) p.y = rand(0, H);
+      var p = makePetal(false);
+      p.y = rand(0, H);
       petals.push(p);
     }
-  }
-
-  function drawTree(){
-    var t = treeAnchor();
-
-    // trunk
-    ctx.save();
-    ctx.translate(t.x, t.y);
-    ctx.globalAlpha = 0.95;
-
-    // trunk gradient
-    var trunkGrad = ctx.createLinearGradient(-40, 0, 60, 220);
-    trunkGrad.addColorStop(0, "rgba(76, 44, 35, .85)");
-    trunkGrad.addColorStop(1, "rgba(44, 26, 21, .72)");
-
-    ctx.fillStyle = trunkGrad;
-
-    ctx.beginPath();
-    ctx.moveTo(-10, 260);
-    ctx.bezierCurveTo(-40, 180, -40, 90, -10, 30);
-    ctx.bezierCurveTo(10, -10, 35, -20, 50, -10);
-    ctx.bezierCurveTo(70, 10, 70, 90, 45, 170);
-    ctx.bezierCurveTo(30, 220, 25, 250, 18, 270);
-    ctx.closePath();
-    ctx.fill();
-
-    // branches
-    ctx.strokeStyle = "rgba(62, 36, 29, .62)";
-    ctx.lineWidth = 10;
-    ctx.lineCap = "round";
-
-    function branch(x1,y1,x2,y2,x3,y3,w){
-      ctx.lineWidth = w;
-      ctx.beginPath();
-      ctx.moveTo(x1,y1);
-      ctx.quadraticCurveTo(x2,y2,x3,y3);
-      ctx.stroke();
-    }
-
-    branch(10,70, 90,35, 150,10, 9);
-    branch(0,100, 70,95, 125,120, 8);
-    branch(10,135, 90,155, 150,195, 7);
-    branch(-5,85, -45,55, -80,20, 7);
-    branch(-10,120, -60,130, -95,170, 6);
-
-    // canopy glow (blossoms cluster)
-    var glow = ctx.createRadialGradient(40, 60, 40, 40, 60, 260);
-    glow.addColorStop(0, "rgba(255, 205, 224, .42)");
-    glow.addColorStop(0.55, "rgba(255, 205, 224, .24)");
-    glow.addColorStop(1, "rgba(255, 205, 224, 0)");
-    ctx.fillStyle = glow;
-    ctx.beginPath();
-    ctx.ellipse(40, 70, 220, 170, -0.08, 0, Math.PI*2);
-    ctx.fill();
-
-    ctx.restore();
   }
 
   function drawPetal(p){
@@ -129,26 +64,37 @@
     ctx.translate(p.x, p.y);
     ctx.rotate(p.rot);
 
-    // cursor wind
-    var wind = (mouseX - 0.5) * 26;
-    ctx.translate(wind * 0.18, (mouseY - 0.5) * 10);
+    // cursor wind/parallax
+    var wind = (mouseX - 0.5) * 34;
+    var lift = (mouseY - 0.5) * 10;
+    ctx.translate(wind * 0.18, lift * 0.12);
 
     ctx.globalAlpha = p.alpha;
 
     var s = p.size;
-    var grad = ctx.createRadialGradient(-s*0.1, -s*0.1, s*0.5, 0, 0, s*1.6);
-    grad.addColorStop(0, "rgba(255, 240, 246, 0.95)");
-    grad.addColorStop(0.45, "rgba(255, 193, 214, 0.88)");
-    grad.addColorStop(1, "rgba(214, 112, 145, 0.72)");
+
+    // soft sakura palette
+    var grad = ctx.createRadialGradient(-s*0.15, -s*0.15, s*0.45, 0, 0, s*1.75);
+    grad.addColorStop(0, "rgba(255, 245, 249, 0.96)");
+    grad.addColorStop(0.42, "rgba(255, 198, 218, 0.88)");
+    grad.addColorStop(1, "rgba(212, 92, 138, 0.70)");
     ctx.fillStyle = grad;
 
+    // petal shape
     ctx.beginPath();
     ctx.moveTo(0, -s);
-    ctx.bezierCurveTo(s*0.7, -s*0.7, s*0.9, -s*0.1, s*0.35, s*0.25);
-    ctx.bezierCurveTo(s*0.55, s*0.65, s*0.2, s*1.05, 0, s*0.8);
-    ctx.bezierCurveTo(-s*0.2, s*1.05, -s*0.55, s*0.65, -s*0.35, s*0.25);
-    ctx.bezierCurveTo(-s*0.9, -s*0.1, -s*0.7, -s*0.7, 0, -s);
+    ctx.bezierCurveTo(s*0.75, -s*0.7, s*0.95, -s*0.05, s*0.35, s*0.28);
+    ctx.bezierCurveTo(s*0.55, s*0.65, s*0.2, s*1.05, 0, s*0.82);
+    ctx.bezierCurveTo(-s*0.2, s*1.05, -s*0.55, s*0.65, -s*0.35, s*0.28);
+    ctx.bezierCurveTo(-s*0.95, -s*0.05, -s*0.75, -s*0.7, 0, -s);
     ctx.closePath();
+    ctx.fill();
+
+    // tiny center hint
+    ctx.globalAlpha *= 0.55;
+    ctx.fillStyle = "rgba(150, 55, 95, 0.18)";
+    ctx.beginPath();
+    ctx.arc(0, s*0.18, s*0.18, 0, Math.PI*2);
     ctx.fill();
 
     ctx.restore();
@@ -163,32 +109,25 @@
     ctx.clearRect(0,0,W,H);
 
     // soft vignette
-    var vg = ctx.createRadialGradient(W*0.55, H*0.45, Math.min(W,H)*0.2, W*0.55, H*0.45, Math.max(W,H)*0.78);
+    var vg = ctx.createRadialGradient(W*0.52, H*0.42, Math.min(W,H)*0.15, W*0.52, H*0.42, Math.max(W,H)*0.9);
     vg.addColorStop(0, "rgba(255,255,255,0)");
-    vg.addColorStop(1, "rgba(230,210,220,0.24)");
+    vg.addColorStop(1, "rgba(230,205,220,0.22)");
     ctx.fillStyle = vg;
     ctx.fillRect(0,0,W,H);
 
-    // draw tree first
-    drawTree();
-
-    // occasional extra petals "falling off the tree"
-    if (Math.random() < 0.25) petals.push(makePetal(true));
-    if (petals.length > 140) petals.splice(0, petals.length - 140);
-
-    var wind = (mouseX - 0.5) * 30;
+    var wind = (mouseX - 0.5) * 42;
 
     for (var i=0;i<petals.length;i++){
       var p = petals[i];
       p.wob += p.wobSpd * dt;
-      p.x += (p.vx + Math.sin(p.wob)*10 + wind) * dt;
+
+      p.x += (p.vx + Math.sin(p.wob)*12 + wind) * dt;
       p.y += p.vy * dt;
       p.rot += p.vr * dt;
 
-      // wrap/reset
       if (p.y > H + 60){
-        petals[i] = makePetal(Math.random() < 0.8);
-        petals[i].y = -rand(20, 160);
+        petals[i] = makePetal(true);
+        petals[i].y = -rand(30, 220);
       }
       if (p.x < -120) p.x = W + 120;
       if (p.x > W + 120) p.x = -120;
@@ -210,7 +149,6 @@
     resizeCanvas();
     seedPetals();
   });
-
   window.addEventListener("mousemove", function (e) {
     mouseX = e.clientX / window.innerWidth;
     mouseY = e.clientY / window.innerHeight;
@@ -296,22 +234,22 @@
   var PHOTOS = [];
   for (var i = 1; i <= 15; i++) PHOTOS.push({ src: "photos/" + i + ".jpg", caption: "—" });
 
-  // Your captions → edited to be smoother + subtle
+  // Captions (your meaning, subtly improved)
   var CAPTIONS = [
-    "I’ll always come back to this day. It felt special — like love, but quiet and certain.",
-    "Whenever I can… I’m yours: travel partner, room partner, drop-off partner — all of it.",
-    "My birthday was great. But the time I smiled the most? The part that had you in it.",
-    "OH MY GOD… how am I not supposed to fall for this person?",
+    "I’ll always come back to this day. It felt special — like love, but quietly sure.",
+    "Whenever I can, I’m yours: travel partner, room partner, drop-off partner — all of it.",
+    "My birthday was great… but my happiest minutes were the ones with you in them.",
+    "OH MY GOD. How am I not supposed to fall for you?",
     "This is comfort. This is real. This is you — and I’m grateful.",
-    "Fourth of July… couldn’t have been better. Thank you for showing up with me.",
-    "Diwali, my best one. I won’t call you ‘pataka’… this photo is calmer than that. I love you.",
-    "The blurriest selfie, but still beautiful — because that smile is perfectly in focus.",
-    "Travel the world together? Always. No questions asked.",
-    "I can’t wait to graduate with you. You’ll take all the pictures you want… I just took the first one.",
-    "Okay. Fine. I get it — you’re *ridiculously* hot. I’ll try to keep up 🙂",
+    "Fourth of July… couldn’t have been better. Thank you for coming with me (and making it ours).",
+    "Diwali, my best one. This photo is calm… but my feelings aren’t. I love you.",
+    "Blurry selfie, clear truth: your smile makes everything look better.",
+    "Travel the world together? Haan. Always.",
+    "Can’t wait to graduate with you and take all the pictures you want… so I took the first one 🙂",
+    "Okay fine. I get it — you’re *ridiculously* hot. I’ll try to keep up.",
     "With you, even grocery runs feel like a date, baby.",
-    "Comfort. Just… comfort. (And you.)",
-    "Can we take more of these sun-kissed pictures… even when you’re like 80? Please?",
+    "Comfort. Bas comfort. (And you.)",
+    "More sun-kissed pictures like this… even when you’re 80? Deal?",
     "If Chicago was the beginning, I swear I’ll take you everywhere you want to be."
   ];
   PHOTOS.forEach(function(p, idx){ p.caption = CAPTIONS[idx] || "—"; });
@@ -370,7 +308,7 @@
     fn();
   }
 
-  // Interludes (from your poem)
+  // Interludes (poem memories)
   var POEM_MEMORIES = [
     "For all the times I didn’t get it right… I still wanted to hold you closer.",
     "For all the times I just wanted to hug you — that feeling hasn’t changed.",
@@ -381,7 +319,7 @@
   ];
   function getInterlude(idx){ return POEM_MEMORIES[idx % POEM_MEMORIES.length]; }
 
-  // Questions (Q3 now normal textbox)
+  // Questions
   var questions = [
     {
       id: "fell_date",
@@ -589,6 +527,7 @@
     });
 
     card.appendChild(wrap);
+
     if (answers[q.id] !== undefined && wrap.children[answers[q.id]]) {
       wrap.children[answers[q.id]].classList.add("selected");
       if (q.type === "choice_reveal") enableToNote(q.revealNote);
@@ -596,6 +535,7 @@
     }
   }
 
+  // Q3: normal textbox; enable Next only after some text
   function renderTextSimple(q){
     var ta = document.createElement("textarea");
     ta.className = "textbox";
@@ -605,7 +545,6 @@
 
     function validate(){
       var v = ta.value.trim();
-      // normal: enable next once there's some input (or allow blank? — we'll require at least 1 char)
       var ok = v.length >= 1;
       if (nextBtn) nextBtn.disabled = !ok;
       if (ok){
@@ -721,7 +660,7 @@
     var lines = [];
     lines.push("Valentine Book — Answers");
     lines.push("================================");
-    lines.push("Name: " + (localStorage.getItem("val_sig") || "—"));
+    lines.push("Signed: " + (localStorage.getItem("val_sig") || "—"));
     lines.push("");
 
     lines.push("1) Fell for you: " + pickOption(questions[0], answers.fell_date));
@@ -735,7 +674,7 @@
     lines.push("9) Valentine: " + (answers.valentine_yes === "yes" ? "Yes" : "—"));
 
     lines.push("");
-    lines.push("(This was exported locally from the page.)");
+    lines.push("(Exported locally from the page.)");
     return lines.join("\n");
   }
 
@@ -757,7 +696,6 @@
     if (navigator.clipboard && navigator.clipboard.writeText){
       return navigator.clipboard.writeText(text);
     }
-    // fallback
     var ta = document.createElement("textarea");
     ta.value = text;
     document.body.appendChild(ta);
@@ -825,7 +763,7 @@
     loadSignature();
     showPanel(final);
 
-    // Add export buttons + wire them (created here to avoid changing HTML)
+    // inject export buttons once
     var leftPage = final.querySelector(".page.left .pageBody");
     if (leftPage && !document.getElementById("exportRow")) {
       var row = document.createElement("div");
