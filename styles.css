@@ -14,7 +14,7 @@ body{
   margin:0;
   color:var(--ink);
   font-family: ui-serif, Georgia, "Times New Roman", Times, serif;
-  background: #f7f0f3;
+  background: #fbfafc;
 }
 
 /* ===== Blossoms Background ===== */
@@ -32,16 +32,16 @@ body{
   z-index:0;
   pointer-events:none;
   background:
-    radial-gradient(1000px 700px at 20% 25%, rgba(255,171,198,.22), transparent 60%),
-    radial-gradient(1000px 760px at 80% 35%, rgba(255,213,229,.18), transparent 62%),
-    radial-gradient(900px 800px at 55% 85%, rgba(255,255,255,.22), transparent 66%),
-    linear-gradient(180deg, rgba(255,255,255,.36), rgba(255,255,255,.16));
+    radial-gradient(1000px 700px at 18% 22%, rgba(255,171,198,.10), transparent 62%),
+    radial-gradient(1000px 760px at 82% 36%, rgba(255,213,229,.08), transparent 64%),
+    radial-gradient(900px 800px at 55% 86%, rgba(255,255,255,.18), transparent 66%),
+    linear-gradient(180deg, rgba(255,255,255,.45), rgba(255,255,255,.18));
 }
 .bgGrain{
   position:fixed;
   inset:0;
   z-index:0;
-  opacity:.16;
+  opacity:.10;
   mix-blend-mode: overlay;
   pointer-events:none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)' opacity='.18'/%3E%3C/svg%3E");
@@ -224,7 +224,7 @@ body{
 .options{display:grid; gap: 10px;}
 .opt{
   border: 1px solid rgba(26,20,18,.14);
-  background: rgba(255,255,255,.60);
+  background: rgba(255,255,255,.62);
   padding: 14px 14px;
   border-radius: 14px;
   cursor:pointer;
@@ -246,7 +246,7 @@ body{
 .textbox,.numBox,.sigInput{
   width:100%;
   border: 1px solid rgba(26,20,18,.14);
-  background: rgba(255,255,255,.60);
+  background: rgba(255,255,255,.62);
   padding: 14px 14px;
   border-radius: 14px;
   outline:none;
@@ -317,7 +317,7 @@ body{
   margin-top: 10px;
   padding: 10px 12px;
   border-radius: 12px;
-  background: rgba(255,255,255,.55);
+  background: rgba(255,255,255,.58);
   border: 1px solid rgba(26,20,18,.12);
   color: rgba(26,20,18,.78);
   font-size: 13px;
