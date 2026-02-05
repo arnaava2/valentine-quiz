@@ -4,19 +4,17 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>A Little Book</title>
-
-  <!-- cache-buster so GitHub Pages updates cleanly -->
-  <link rel="stylesheet" href="styles.css?v=final8" />
+  <link rel="stylesheet" href="styles.css?v=final9" />
   <link rel="icon" href="data:,">
 </head>
 
 <body>
-  <!-- Classic cherry blossoms drifting -->
+  <!-- Cherry blossoms drifting (no tree) -->
   <canvas id="petalCanvas" class="petalCanvas" aria-hidden="true"></canvas>
   <div class="bgWash" aria-hidden="true"></div>
   <div class="bgGrain" aria-hidden="true"></div>
 
-  <!-- Background music (song.mp3 is in repo root) -->
+  <!-- Background music (song.mp3 in repo root) -->
   <audio id="bgm" preload="auto" loop playsinline>
     <source src="song.mp3" type="audio/mpeg" />
   </audio>
@@ -92,7 +90,6 @@
             </div>
 
             <div class="pageBody">
-              <!-- Question / interlude renders here -->
               <div class="card" id="card"></div>
 
               <div class="nav">
@@ -114,7 +111,6 @@
             </div>
 
             <div class="pageBody">
-              <!-- Carousel -->
               <div class="carousel" aria-label="Photo carousel">
                 <div class="carouselFrame">
                   <img id="photoImg" class="carouselImg" alt="A memory" />
@@ -122,9 +118,7 @@
                   <button id="photoNext" class="carouselBtn right" type="button" aria-label="Next photo">›</button>
                 </div>
 
-                <!-- caption BELOW photo (no overlap) -->
                 <div class="carouselCaption" id="photoCaption">—</div>
-
                 <div class="carouselDots" id="photoDots" aria-label="Photo navigation dots"></div>
               </div>
 
@@ -187,8 +181,6 @@
                 <span class="sigLabel">Signed:</span>
                 <span class="sigValue" id="sigOutput">—</span>
               </div>
-
-              <!-- Export buttons injected by script.js -->
             </div>
 
             <div class="pageNum">— ∞ —</div>
@@ -226,6 +218,6 @@
 
   </main>
 
-  <script src="script.js?v=final8"></script>
+  <script src="script.js?v=final9"></script>
 </body>
 </html>
