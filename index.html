@@ -4,12 +4,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>A Little Book</title>
-  <link rel="stylesheet" href="styles.css?v=final9" />
+  <link rel="stylesheet" href="styles.css?v=final11" />
   <link rel="icon" href="data:,">
 </head>
 
 <body>
-  <!-- Cherry blossoms drifting (no tree) -->
+  <!-- Clear cherry blossoms drifting (no tree) -->
   <canvas id="petalCanvas" class="petalCanvas" aria-hidden="true"></canvas>
   <div class="bgWash" aria-hidden="true"></div>
   <div class="bgGrain" aria-hidden="true"></div>
@@ -218,6 +218,229 @@
 
   </main>
 
-  <script src="script.js?v=final9"></script>
+  <script src="script.js?v=final11"></script>
+</body>
+</html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>A Little Book</title>
+  <link rel="stylesheet" href="styles.css?v=final11" />
+  <link rel="icon" href="data:,">
+</head>
+
+<body>
+  <!-- Clear cherry blossoms drifting (no tree) -->
+  <canvas id="petalCanvas" class="petalCanvas" aria-hidden="true"></canvas>
+  <div class="bgWash" aria-hidden="true"></div>
+  <div class="bgGrain" aria-hidden="true"></div>
+
+  <!-- Background music (song.mp3 in repo root) -->
+  <audio id="bgm" preload="auto" loop playsinline>
+    <source src="song.mp3" type="audio/mpeg" />
+  </audio>
+
+  <main class="stage">
+
+    <!-- INTRO -->
+    <section class="panel is-active active" id="intro" aria-live="polite">
+      <div class="openBook">
+        <div class="bookSpread">
+          <div class="page left">
+            <div class="pageHeader">
+              <div class="chapter">CHAPTER I</div>
+              <div class="chapterTitle">The Invitation</div>
+            </div>
+
+            <div class="pageBody center">
+              <p class="kicker">for</p>
+              <h1 class="hero" id="heroTitle">Madhura.</h1>
+              <p class="sub">
+                I made this like a little book.<br />
+                One page at a time — just for you.
+              </p>
+
+              <button class="primary" id="beginBtn" type="button">Begin</button>
+              <p class="hint">Tap “Begin” to start the music.</p>
+            </div>
+
+            <div class="pageNum">— 1 —</div>
+          </div>
+
+          <div class="spine" aria-hidden="true"></div>
+
+          <div class="page right">
+            <div class="pageHeader">
+              <div class="chapter">A SMALL DISCLAIMER</div>
+              <div class="chapterTitle">Before You Turn The Page</div>
+            </div>
+
+            <div class="pageBody">
+              <p class="prose">
+                Read slowly.<br />
+                Smile if you want to.<br />
+                And if you ever feel like the answer is “all of the above” —
+                that’s probably because it is.
+              </p>
+              <p class="prose faint">
+                (The undersigned has been known to be hopelessly certain about you.)
+              </p>
+            </div>
+
+            <div class="pageNum">— 2 —</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- QUIZ -->
+    <section class="panel" id="quiz" aria-live="polite">
+      <div class="openBook">
+        <div class="bookSpread" id="quizSpread">
+
+          <!-- LEFT PAGE -->
+          <div class="page left">
+            <div class="pageHeader">
+              <div class="chapter" id="chapterLine">CHAPTER II</div>
+              <div class="chapterTitle" id="chapterTitle">A Gentle Examination</div>
+            </div>
+
+            <div class="topline">
+              <span class="progress" id="progressText">1 / 9</span>
+              <button class="linkBtn" id="musicBtn" type="button">Music: Off</button>
+            </div>
+
+            <div class="pageBody">
+              <div class="card" id="card"></div>
+
+              <div class="nav">
+                <button class="ghost" id="backBtn" type="button" disabled>Back</button>
+                <button class="primary" id="nextBtn" type="button" disabled>Next</button>
+              </div>
+            </div>
+
+            <div class="pageNum" id="pageNumLeft">— 3 —</div>
+          </div>
+
+          <div class="spine" aria-hidden="true"></div>
+
+          <!-- RIGHT PAGE -->
+          <div class="page right">
+            <div class="pageHeader">
+              <div class="chapter">MARGINALIA</div>
+              <div class="chapterTitle">PHOTOS & NOTES</div>
+            </div>
+
+            <div class="pageBody">
+              <div class="carousel" aria-label="Photo carousel">
+                <div class="carouselFrame">
+                  <img id="photoImg" class="carouselImg" alt="A memory" />
+                  <button id="photoPrev" class="carouselBtn left" type="button" aria-label="Previous photo">‹</button>
+                  <button id="photoNext" class="carouselBtn right" type="button" aria-label="Next photo">›</button>
+                </div>
+
+                <div class="carouselCaption" id="photoCaption">—</div>
+                <div class="carouselDots" id="photoDots" aria-label="Photo navigation dots"></div>
+              </div>
+
+              <p class="noteTitle" id="noteTitle">Turn a page…</p>
+              <p class="noteBody" id="noteBody">Your answers will leave little notes here — like bookmarks.</p>
+              <div class="noteRule"></div>
+              <p class="noteFooter" id="noteFooter">—</p>
+            </div>
+
+            <div class="pageNum" id="pageNumRight">— 4 —</div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- FINAL -->
+    <section class="panel" id="final" aria-live="polite">
+      <div class="openBook">
+        <div class="bookSpread">
+          <div class="page left">
+            <div class="pageHeader">
+              <div class="chapter">CHAPTER III</div>
+              <div class="chapterTitle">A Conclusion I Already Knew</div>
+            </div>
+
+            <div class="pageBody">
+              <p class="kicker">result</p>
+              <h2 class="finalTitle" id="finalTitle">You’re my Valentine.</h2>
+              <p class="finalBody" id="finalBody"></p>
+
+              <div class="grid">
+                <div class="mini">
+                  <div class="miniLabel">Vibe</div>
+                  <div class="miniValue" id="outVibe">—</div>
+                </div>
+                <div class="mini">
+                  <div class="miniLabel">Budget</div>
+                  <div class="miniValue" id="outBudget">—</div>
+                </div>
+                <div class="mini wide">
+                  <div class="miniLabel">Ideal winter date</div>
+                  <div class="miniValue" id="outWinter">—</div>
+                </div>
+                <div class="mini wide">
+                  <div class="miniLabel">When I say “Valentine”…</div>
+                  <div class="miniValue" id="outVal">—</div>
+                </div>
+                <div class="mini wide">
+                  <div class="miniLabel">Your gift</div>
+                  <div class="miniValue" id="outGift">—</div>
+                </div>
+                <div class="mini wide">
+                  <div class="miniLabel">Your words</div>
+                  <div class="miniValue" id="outUs">—</div>
+                </div>
+              </div>
+
+              <div class="sigSummary">
+                <span class="sigLabel">Signed:</span>
+                <span class="sigValue" id="sigOutput">—</span>
+              </div>
+            </div>
+
+            <div class="pageNum">— ∞ —</div>
+          </div>
+
+          <div class="spine" aria-hidden="true"></div>
+
+          <div class="page right">
+            <div class="pageHeader">
+              <div class="chapter">SIGNED</div>
+              <div class="chapterTitle">The Undersigned Requests</div>
+            </div>
+
+            <div class="pageBody">
+              <p class="prose">This is me, asking properly:</p>
+              <p class="bigLine">Will you be my Valentine?</p>
+              <p class="prose faint">(If your answer is yes — I’m already smiling.)</p>
+
+              <div class="signatureBlock">
+                <div class="sigPrompt">Sign here (optional, but cute):</div>
+                <input id="sigInput" class="sigInput" type="text" placeholder="Your name / signature…" autocomplete="off" />
+                <div class="sigRow">
+                  <button id="sigBtn" class="primary sigBtn" type="button">Sign</button>
+                  <button id="sigClear" class="ghost sigClear" type="button">Clear</button>
+                </div>
+                <div class="sigHint">Don’t worry — this stays on your device only.</div>
+              </div>
+            </div>
+
+            <div class="pageNum">— ∞ —</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="script.js?v=final11"></script>
 </body>
 </html>
