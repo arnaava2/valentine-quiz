@@ -17,7 +17,7 @@ body{
   background: #f7f0f3;
 }
 
-/* ===== Blossom Tree Background ===== */
+/* ===== Blossoms Background ===== */
 .petalCanvas{
   position:fixed;
   inset:0;
@@ -312,7 +312,7 @@ body{
   transition: opacity .28s ease;
 }
 
-/* Caption BELOW photo (no overlap) */
+/* Caption BELOW photo */
 .carouselCaption{
   margin-top: 10px;
   padding: 10px 12px;
