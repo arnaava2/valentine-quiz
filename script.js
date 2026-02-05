@@ -10,12 +10,17 @@
   function safeText(el, value) { if (el) el.textContent = value; }
 
   // ==========================================
-  // Classic Cherry Blossom Petals (Canvas BG)
+  // Clear Cherry Blossom Petals (Canvas BG)
   // ==========================================
   var canvas = $("petalCanvas");
   var ctx = canvas ? canvas.getContext("2d") : null;
   var W = 0, H = 0;
+
+  // cursor interaction (stronger)
   var mouseX = 0.5, mouseY = 0.45;
+  var mouseVX = 0, mouseVY = 0;
+  var lastMX = null, lastMY = null;
+
   var petals = [];
   var lastT = 0;
 
@@ -33,25 +38,27 @@
   function rand(a,b){ return a + Math.random()*(b-a); }
 
   function makePetal(spawnTop){
-    var size = rand(8, 18);
+    var size = rand(10, 22); // clearer/larger
     return {
-      x: rand(-60, W + 60),
-      y: spawnTop ? rand(-H, -40) : rand(-40, H + 40),
-      vx: rand(-10, 12),
-      vy: rand(22, 62),
+      x: rand(-80, W + 80),
+      y: spawnTop ? rand(-H, -60) : rand(-60, H + 60),
+      vx: rand(-12, 14),
+      vy: rand(26, 70),
       rot: rand(0, Math.PI * 2),
-      vr: rand(-1.4, 1.4),
+      vr: rand(-1.8, 1.8),
       wob: rand(0, Math.PI * 2),
-      wobSpd: rand(0.6, 1.8),
+      wobSpd: rand(0.6, 1.9),
       size: size,
-      alpha: rand(0.45, 0.92)
+      alpha: rand(0.55, 0.98),
+      // gives a little depth
+      z: rand(0.3, 1.0)
     };
   }
 
   function seedPetals(){
     if (!ctx) return;
     petals = [];
-    var count = Math.min(120, Math.max(70, Math.floor((W*H)/19000)));
+    var count = Math.min(140, Math.max(90, Math.floor((W*H)/17000)));
     for (var i=0;i<count;i++){
       var p = makePetal(false);
       p.y = rand(0, H);
@@ -64,40 +71,57 @@
     ctx.translate(p.x, p.y);
     ctx.rotate(p.rot);
 
-    // cursor wind/parallax
-    var wind = (mouseX - 0.5) * 34;
-    var lift = (mouseY - 0.5) * 10;
-    ctx.translate(wind * 0.18, lift * 0.12);
+    // interactive "wind" and swirl (based on cursor pos + velocity)
+    var windBase = (mouseX - 0.5) * 70;
+    var liftBase = (mouseY - 0.5) * 18;
+
+    var swirl = (mouseVX * 0.9) + (mouseVY * -0.4);
+    ctx.translate(windBase * 0.25 * p.z, liftBase * 0.18 * p.z);
 
     ctx.globalAlpha = p.alpha;
 
     var s = p.size;
 
-    // soft sakura palette
-    var grad = ctx.createRadialGradient(-s*0.15, -s*0.15, s*0.45, 0, 0, s*1.75);
-    grad.addColorStop(0, "rgba(255, 245, 249, 0.96)");
-    grad.addColorStop(0.42, "rgba(255, 198, 218, 0.88)");
-    grad.addColorStop(1, "rgba(212, 92, 138, 0.70)");
+    // clearer sakura palette
+    var grad = ctx.createRadialGradient(-s*0.22, -s*0.18, s*0.35, 0, 0, s*1.9);
+    grad.addColorStop(0, "rgba(255, 252, 254, 0.98)");
+    grad.addColorStop(0.35, "rgba(255, 208, 227, 0.92)");
+    grad.addColorStop(1, "rgba(210, 78, 130, 0.78)");
     ctx.fillStyle = grad;
+
+    // subtle edge
+    ctx.strokeStyle = "rgba(150, 55, 95, 0.10)";
+    ctx.lineWidth = Math.max(0.7, s * 0.04);
 
     // petal shape
     ctx.beginPath();
     ctx.moveTo(0, -s);
-    ctx.bezierCurveTo(s*0.75, -s*0.7, s*0.95, -s*0.05, s*0.35, s*0.28);
-    ctx.bezierCurveTo(s*0.55, s*0.65, s*0.2, s*1.05, 0, s*0.82);
-    ctx.bezierCurveTo(-s*0.2, s*1.05, -s*0.55, s*0.65, -s*0.35, s*0.28);
-    ctx.bezierCurveTo(-s*0.95, -s*0.05, -s*0.75, -s*0.7, 0, -s);
+    ctx.bezierCurveTo(s*0.85, -s*0.75, s*1.05, -s*0.05, s*0.38, s*0.32);
+    ctx.bezierCurveTo(s*0.60, s*0.70, s*0.22, s*1.10, 0, s*0.86);
+    ctx.bezierCurveTo(-s*0.22, s*1.10, -s*0.60, s*0.70, -s*0.38, s*0.32);
+    ctx.bezierCurveTo(-s*1.05, -s*0.05, -s*0.85, -s*0.75, 0, -s);
     ctx.closePath();
     ctx.fill();
+    ctx.stroke();
 
-    // tiny center hint
-    ctx.globalAlpha *= 0.55;
-    ctx.fillStyle = "rgba(150, 55, 95, 0.18)";
+    // tiny center
+    ctx.globalAlpha *= 0.6;
+    ctx.fillStyle = "rgba(150, 55, 95, 0.16)";
     ctx.beginPath();
-    ctx.arc(0, s*0.18, s*0.18, 0, Math.PI*2);
+    ctx.arc(0, s*0.18, s*0.16, 0, Math.PI*2);
+    ctx.fill();
+
+    // hint of motion shimmer
+    ctx.globalAlpha *= 0.22;
+    ctx.fillStyle = "rgba(255,255,255,0.8)";
+    ctx.beginPath();
+    ctx.ellipse(-s*0.10, -s*0.25, s*0.18, s*0.12, 0.6, 0, Math.PI*2);
     ctx.fill();
 
     ctx.restore();
+
+    // apply a tiny extra drift from "swirl"
+    p.x += swirl * 0.0007 * (p.size * 8);
   }
 
   function step(t){
@@ -109,28 +133,29 @@
     ctx.clearRect(0,0,W,H);
 
     // soft vignette
-    var vg = ctx.createRadialGradient(W*0.52, H*0.42, Math.min(W,H)*0.15, W*0.52, H*0.42, Math.max(W,H)*0.9);
+    var vg = ctx.createRadialGradient(W*0.52, H*0.42, Math.min(W,H)*0.12, W*0.52, H*0.42, Math.max(W,H)*0.95);
     vg.addColorStop(0, "rgba(255,255,255,0)");
-    vg.addColorStop(1, "rgba(230,205,220,0.22)");
+    vg.addColorStop(1, "rgba(230,205,220,0.20)");
     ctx.fillStyle = vg;
     ctx.fillRect(0,0,W,H);
 
-    var wind = (mouseX - 0.5) * 42;
+    var wind = (mouseX - 0.5) * 90 + mouseVX * 0.06;
 
     for (var i=0;i<petals.length;i++){
       var p = petals[i];
       p.wob += p.wobSpd * dt;
 
-      p.x += (p.vx + Math.sin(p.wob)*12 + wind) * dt;
-      p.y += p.vy * dt;
+      p.x += (p.vx + Math.sin(p.wob)*14 + wind) * dt * (0.6 + p.z);
+      p.y += p.vy * dt * (0.65 + p.z);
       p.rot += p.vr * dt;
 
-      if (p.y > H + 60){
+      // respawn
+      if (p.y > H + 80){
         petals[i] = makePetal(true);
-        petals[i].y = -rand(30, 220);
+        petals[i].y = -rand(40, 260);
       }
-      if (p.x < -120) p.x = W + 120;
-      if (p.x > W + 120) p.x = -120;
+      if (p.x < -160) p.x = W + 160;
+      if (p.x > W + 160) p.x = -160;
 
       drawPetal(p);
     }
@@ -149,9 +174,27 @@
     resizeCanvas();
     seedPetals();
   });
+
   window.addEventListener("mousemove", function (e) {
-    mouseX = e.clientX / window.innerWidth;
-    mouseY = e.clientY / window.innerHeight;
+    var nx = e.clientX / window.innerWidth;
+    var ny = e.clientY / window.innerHeight;
+
+    if (lastMX !== null) {
+      mouseVX = (e.clientX - lastMX);
+      mouseVY = (e.clientY - lastMY);
+      // clamp
+      mouseVX = Math.max(-80, Math.min(80, mouseVX));
+      mouseVY = Math.max(-80, Math.min(80, mouseVY));
+    }
+
+    lastMX = e.clientX;
+    lastMY = e.clientY;
+
+    mouseX = nx;
+    mouseY = ny;
+
+    // decay velocity
+    setTimeout(function(){ mouseVX *= 0.6; mouseVY *= 0.6; }, 22);
   });
 
   initCanvas();
@@ -179,7 +222,7 @@
   }
   function startMusic() {
     if (!bgm) return Promise.resolve();
-    bgm.volume = 0.75;
+    bgm.volume = 0.78;
     bgm.muted = false;
     return bgm.play().then(function () {
       musicOn = true; setMusicLabel();
@@ -230,11 +273,9 @@
   // ===== Carousel DOM =====
   var photoImg = $("photoImg"), photoCaption = $("photoCaption"), photoPrev = $("photoPrev"), photoNext = $("photoNext"), photoDots = $("photoDots");
 
-  // Photos
   var PHOTOS = [];
   for (var i = 1; i <= 15; i++) PHOTOS.push({ src: "photos/" + i + ".jpg", caption: "—" });
 
-  // Captions (your meaning, subtly improved)
   var CAPTIONS = [
     "I’ll always come back to this day. It felt special — like love, but quietly sure.",
     "Whenever I can, I’m yours: travel partner, room partner, drop-off partner — all of it.",
@@ -253,7 +294,6 @@
     "If Chicago was the beginning, I swear I’ll take you everywhere you want to be."
   ];
   PHOTOS.forEach(function(p, idx){ p.caption = CAPTIONS[idx] || "—"; });
-
   PHOTOS.forEach(function(p){ var im = new Image(); im.src = p.src; });
 
   var photoIndex = 0, autoTimer = null;
@@ -308,14 +348,14 @@
     fn();
   }
 
-  // Interludes (poem memories)
+  // Interludes (short, subtle, NOT repetitive)
   var POEM_MEMORIES = [
     "For all the times I didn’t get it right… I still wanted to hold you closer.",
     "For all the times I just wanted to hug you — that feeling hasn’t changed.",
-    "Sometimes I wanted to get you a flower… and then it became my favorite habit.",
-    "I’ve missed you a lot. Quietly. Properly. Always.",
-    "Picking flowers for you… has become my soft little tradition.",
-    "I hope I keep doing it — for as long as time exists."
+    "Sometimes I wanted to get you a flower… and then it became a habit I like too much.",
+    "I’ve missed you. Quietly. Properly. Always.",
+    "Picking tiny moments with you… somehow became my favorite thing.",
+    "I hope I keep choosing you — for as long as time exists."
   ];
   function getInterlude(idx){ return POEM_MEMORIES[idx % POEM_MEMORIES.length]; }
 
@@ -328,7 +368,7 @@
       prompt:
         "Some moments don’t arrive with fireworks.\nThey arrive quietly — and then they never leave.\n\n" +
         "When do you believe the undersigned first fell for you?",
-      options: ["January 14, 2025","February 3, 2025","Some random day I don’t remember","It was inevitable 😌"],
+      options: ["July 4, 2025","February 3, 2025","Some random day I don’t remember","It was inevitable 😌"],
       correctIndex: 1,
       noteOk: "Correct. The heart is annoyingly precise about you.",
       noteNo: "Not quite — try again. (The right date is a little sacred.)"
@@ -451,7 +491,7 @@
       card.innerHTML =
         '<h3 class="qTitle">Ek chhoti si yaad…</h3>' +
         '<p class="qPrompt">' + memory + '</p>' +
-        '<p class="qPrompt" style="opacity:.78">And yes… I’m still bringing you flowers.</p>';
+        '<p class="qPrompt" style="opacity:.78">Turn the page… I’m saving the best parts for later.</p>';
     }
   }
 
@@ -535,7 +575,6 @@
     }
   }
 
-  // Q3: normal textbox; enable Next only after some text
   function renderTextSimple(q){
     var ta = document.createElement("textarea");
     ta.className = "textbox";
@@ -647,7 +686,7 @@
     if (nextBtn) nextBtn.disabled = true;
   }
 
-  // ===== Answer export (GitHub Pages safe) =====
+  // ===== Answer export =====
   function buildAnswerSummary(){
     var vibeQ = questions.find(function(x){ return x.id === "vibe"; });
     var traitQ = questions.find(function(x){ return x.id === "trait"; });
@@ -749,8 +788,10 @@
 
     safeText($("finalTitle"), GIRLFRIEND_NAME + ", you’re my Valentine.");
     safeText($("finalBody"),
-      "If Chicago was a beginning… then I’m excited for every chapter after.\n" +
-      "And yes — I’ll keep picking flowers for you, for as long as time exists."
+      "Here’s to us.\n" +
+      "To your calm — my favorite place.\n" +
+      "To the tiny efforts you think no one sees.\n" +
+      "And to every chapter that comes next."
     );
 
     safeText($("outVibe"), vibe);
@@ -763,7 +804,6 @@
     loadSignature();
     showPanel(final);
 
-    // inject export buttons once
     var leftPage = final.querySelector(".page.left .pageBody");
     if (leftPage && !document.getElementById("exportRow")) {
       var row = document.createElement("div");
@@ -799,8 +839,8 @@
   }
 
   // ===== Start =====
-  if (beginBtn) {
-    beginBtn.addEventListener("click", function () {
+  if ($("beginBtn")) {
+    $("beginBtn").addEventListener("click", function () {
       startMusic().finally(function () {
         showPanel(quiz);
         idxQ = 0;
@@ -812,7 +852,5 @@
     });
   }
 
-  // init
   showPanel(intro);
-
 })();
