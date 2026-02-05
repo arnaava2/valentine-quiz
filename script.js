@@ -16,7 +16,6 @@
   var ctx = canvas ? canvas.getContext("2d") : null;
   var W = 0, H = 0;
 
-  // cursor interaction (stronger)
   var mouseX = 0.5, mouseY = 0.45;
   var mouseVX = 0, mouseVY = 0;
   var lastMX = null, lastMY = null;
@@ -38,27 +37,26 @@
   function rand(a,b){ return a + Math.random()*(b-a); }
 
   function makePetal(spawnTop){
-    var size = rand(10, 22); // clearer/larger
+    var size = rand(12, 26);
     return {
-      x: rand(-80, W + 80),
-      y: spawnTop ? rand(-H, -60) : rand(-60, H + 60),
-      vx: rand(-12, 14),
-      vy: rand(26, 70),
+      x: rand(-90, W + 90),
+      y: spawnTop ? rand(-H, -80) : rand(-80, H + 80),
+      vx: rand(-12, 16),
+      vy: rand(26, 74),
       rot: rand(0, Math.PI * 2),
       vr: rand(-1.8, 1.8),
       wob: rand(0, Math.PI * 2),
-      wobSpd: rand(0.6, 1.9),
+      wobSpd: rand(0.7, 2.0),
       size: size,
-      alpha: rand(0.55, 0.98),
-      // gives a little depth
-      z: rand(0.3, 1.0)
+      alpha: rand(0.62, 1.0),
+      z: rand(0.35, 1.05)
     };
   }
 
   function seedPetals(){
     if (!ctx) return;
     petals = [];
-    var count = Math.min(140, Math.max(90, Math.floor((W*H)/17000)));
+    var count = Math.min(150, Math.max(95, Math.floor((W*H)/16000)));
     for (var i=0;i<count;i++){
       var p = makePetal(false);
       p.y = rand(0, H);
@@ -71,57 +69,56 @@
     ctx.translate(p.x, p.y);
     ctx.rotate(p.rot);
 
-    // interactive "wind" and swirl (based on cursor pos + velocity)
-    var windBase = (mouseX - 0.5) * 70;
-    var liftBase = (mouseY - 0.5) * 18;
+    var windBase = (mouseX - 0.5) * 110 + mouseVX * 0.08;
+    var liftBase = (mouseY - 0.5) * 26 + mouseVY * 0.02;
 
-    var swirl = (mouseVX * 0.9) + (mouseVY * -0.4);
-    ctx.translate(windBase * 0.25 * p.z, liftBase * 0.18 * p.z);
+    var swirl = (mouseVX * 0.85) + (mouseVY * -0.35);
+    ctx.translate(windBase * 0.22 * p.z, liftBase * 0.16 * p.z);
+
+    ctx.shadowColor = "rgba(90, 18, 48, 0.18)";
+    ctx.shadowBlur = 10 * p.z;
+    ctx.shadowOffsetX = 2 * p.z;
+    ctx.shadowOffsetY = 2 * p.z;
 
     ctx.globalAlpha = p.alpha;
 
     var s = p.size;
 
-    // clearer sakura palette
-    var grad = ctx.createRadialGradient(-s*0.22, -s*0.18, s*0.35, 0, 0, s*1.9);
-    grad.addColorStop(0, "rgba(255, 252, 254, 0.98)");
-    grad.addColorStop(0.35, "rgba(255, 208, 227, 0.92)");
-    grad.addColorStop(1, "rgba(210, 78, 130, 0.78)");
+    var grad = ctx.createRadialGradient(-s*0.22, -s*0.18, s*0.34, 0, 0, s*1.95);
+    grad.addColorStop(0, "rgba(255, 255, 255, 0.98)");
+    grad.addColorStop(0.34, "rgba(255, 205, 228, 0.94)");
+    grad.addColorStop(1, "rgba(198, 54, 116, 0.86)");
     ctx.fillStyle = grad;
 
-    // subtle edge
-    ctx.strokeStyle = "rgba(150, 55, 95, 0.10)";
-    ctx.lineWidth = Math.max(0.7, s * 0.04);
+    ctx.shadowColor = "transparent";
+    ctx.strokeStyle = "rgba(120, 25, 70, 0.18)";
+    ctx.lineWidth = Math.max(0.85, s * 0.045);
 
-    // petal shape
     ctx.beginPath();
     ctx.moveTo(0, -s);
-    ctx.bezierCurveTo(s*0.85, -s*0.75, s*1.05, -s*0.05, s*0.38, s*0.32);
-    ctx.bezierCurveTo(s*0.60, s*0.70, s*0.22, s*1.10, 0, s*0.86);
-    ctx.bezierCurveTo(-s*0.22, s*1.10, -s*0.60, s*0.70, -s*0.38, s*0.32);
-    ctx.bezierCurveTo(-s*1.05, -s*0.05, -s*0.85, -s*0.75, 0, -s);
+    ctx.bezierCurveTo(s*0.9, -s*0.76, s*1.08, -s*0.05, s*0.40, s*0.34);
+    ctx.bezierCurveTo(s*0.62, s*0.74, s*0.24, s*1.12, 0, s*0.88);
+    ctx.bezierCurveTo(-s*0.24, s*1.12, -s*0.62, s*0.74, -s*0.40, s*0.34);
+    ctx.bezierCurveTo(-s*1.08, -s*0.05, -s*0.9, -s*0.76, 0, -s);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
 
-    // tiny center
-    ctx.globalAlpha *= 0.6;
-    ctx.fillStyle = "rgba(150, 55, 95, 0.16)";
+    ctx.globalAlpha *= 0.62;
+    ctx.fillStyle = "rgba(110, 18, 58, 0.18)";
     ctx.beginPath();
     ctx.arc(0, s*0.18, s*0.16, 0, Math.PI*2);
     ctx.fill();
 
-    // hint of motion shimmer
     ctx.globalAlpha *= 0.22;
-    ctx.fillStyle = "rgba(255,255,255,0.8)";
+    ctx.fillStyle = "rgba(255,255,255,0.9)";
     ctx.beginPath();
-    ctx.ellipse(-s*0.10, -s*0.25, s*0.18, s*0.12, 0.6, 0, Math.PI*2);
+    ctx.ellipse(-s*0.12, -s*0.28, s*0.20, s*0.13, 0.65, 0, Math.PI*2);
     ctx.fill();
 
     ctx.restore();
 
-    // apply a tiny extra drift from "swirl"
-    p.x += swirl * 0.0007 * (p.size * 8);
+    p.x += swirl * 0.00075 * (p.size * 8);
   }
 
   function step(t){
@@ -132,30 +129,28 @@
 
     ctx.clearRect(0,0,W,H);
 
-    // soft vignette
     var vg = ctx.createRadialGradient(W*0.52, H*0.42, Math.min(W,H)*0.12, W*0.52, H*0.42, Math.max(W,H)*0.95);
     vg.addColorStop(0, "rgba(255,255,255,0)");
-    vg.addColorStop(1, "rgba(230,205,220,0.20)");
+    vg.addColorStop(1, "rgba(210,170,190,0.10)");
     ctx.fillStyle = vg;
     ctx.fillRect(0,0,W,H);
 
-    var wind = (mouseX - 0.5) * 90 + mouseVX * 0.06;
+    var wind = (mouseX - 0.5) * 125 + mouseVX * 0.08;
 
     for (var i=0;i<petals.length;i++){
       var p = petals[i];
       p.wob += p.wobSpd * dt;
 
-      p.x += (p.vx + Math.sin(p.wob)*14 + wind) * dt * (0.6 + p.z);
+      p.x += (p.vx + Math.sin(p.wob)*16 + wind) * dt * (0.6 + p.z);
       p.y += p.vy * dt * (0.65 + p.z);
       p.rot += p.vr * dt;
 
-      // respawn
-      if (p.y > H + 80){
+      if (p.y > H + 90){
         petals[i] = makePetal(true);
-        petals[i].y = -rand(40, 260);
+        petals[i].y = -rand(50, 280);
       }
-      if (p.x < -160) p.x = W + 160;
-      if (p.x > W + 160) p.x = -160;
+      if (p.x < -180) p.x = W + 180;
+      if (p.x > W + 180) p.x = -180;
 
       drawPetal(p);
     }
@@ -182,9 +177,8 @@
     if (lastMX !== null) {
       mouseVX = (e.clientX - lastMX);
       mouseVY = (e.clientY - lastMY);
-      // clamp
-      mouseVX = Math.max(-80, Math.min(80, mouseVX));
-      mouseVY = Math.max(-80, Math.min(80, mouseVY));
+      mouseVX = Math.max(-90, Math.min(90, mouseVX));
+      mouseVY = Math.max(-90, Math.min(90, mouseVY));
     }
 
     lastMX = e.clientX;
@@ -193,8 +187,7 @@
     mouseX = nx;
     mouseY = ny;
 
-    // decay velocity
-    setTimeout(function(){ mouseVX *= 0.6; mouseVY *= 0.6; }, 22);
+    setTimeout(function(){ mouseVX *= 0.58; mouseVY *= 0.58; }, 22);
   });
 
   initCanvas();
@@ -242,9 +235,8 @@
   setMusicLabel();
 
   // ===== Quiz DOM =====
-  var beginBtn = $("beginBtn"), card = $("card"), backBtn = $("backBtn"), nextBtn = $("nextBtn");
-  var progressText = $("progressText"), chapterLine = $("chapterLine"), chapterTitle = $("chapterTitle");
-  var noteTitle = $("noteTitle"), noteBody = $("noteBody"), noteFooter = $("noteFooter");
+  var card = $("card"), backBtn = $("backBtn"), nextBtn = $("nextBtn");
+  var progressText = $("progressText"), noteTitle = $("noteTitle"), noteBody = $("noteBody"), noteFooter = $("noteFooter");
   var quizSpread = $("quizSpread");
 
   // ===== Signature =====
@@ -270,7 +262,7 @@
   });
   loadSignature();
 
-  // ===== Carousel DOM =====
+  // ===== Carousel =====
   var photoImg = $("photoImg"), photoCaption = $("photoCaption"), photoPrev = $("photoPrev"), photoNext = $("photoNext"), photoDots = $("photoDots");
 
   var PHOTOS = [];
@@ -348,14 +340,18 @@
     fn();
   }
 
-  // Interludes (short, subtle, NOT repetitive)
+  // Interludes (MSM Travels vibe)
   var POEM_MEMORIES = [
-    "For all the times I didn’t get it right… I still wanted to hold you closer.",
-    "For all the times I just wanted to hug you — that feeling hasn’t changed.",
-    "Sometimes I wanted to get you a flower… and then it became a habit I like too much.",
-    "I’ve missed you. Quietly. Properly. Always.",
-    "Picking tiny moments with you… somehow became my favorite thing.",
-    "I hope I keep choosing you — for as long as time exists."
+    "Here’s to us — the bond we never announced, but somehow built anyway.",
+    "I’m proud of you. Like genuinely proud. Every single day.",
+    "Learning your language, one word at a time… because loving you makes effort feel right.",
+    "Your calm is my favorite place. Soft, safe, and real.",
+    "From long talks as friends to something rare — suddenly clear. (Haan, you.)",
+    "Helping with applications, showing up, holding it together — you inspire me, baby.",
+    "Warm showers, warm laughs, warm us. Bas itna hi chahiye.",
+    "Batman, Pikachu, and us pulled in for the night… comfort level: maximum.",
+    "Cooking Marathi just for you… trying to get it right (hopefully I do).",
+    "Talking futures — careful, real… seeing what stays. Feeling what’s sealed."
   ];
   function getInterlude(idx){ return POEM_MEMORIES[idx % POEM_MEMORIES.length]; }
 
@@ -445,14 +441,16 @@
     }
   ];
 
-  // State
   var idxQ = 0;
   var mode = "question";
   var pendingNote = "";
   var answers = {};
 
+  // flowers only once (first interlude only)
+  var flowersShownOnce = false;
+
   function setProgress() {
-    safeText(progressText, (idxQ + 1) + " / " + questions.length);
+    safeText($("progressText"), (idxQ + 1) + " / " + questions.length);
 
     var left = 3 + idxQ * 2 + (mode === "note" ? 1 : 0);
     var right = left + 1;
@@ -460,8 +458,8 @@
     safeText($("pageNumLeft"), "— " + left + " —");
     safeText($("pageNumRight"), "— " + right + " —");
 
-    safeText(chapterLine, "CHAPTER II");
-    safeText(chapterTitle, (mode === "question") ? "A Gentle Examination" : "A Small Memory");
+    safeText($("chapterLine"), "CHAPTER II");
+    safeText($("chapterTitle"), (mode === "question") ? "A Gentle Examination" : "A Small Memory");
   }
 
   function render() {
@@ -487,11 +485,19 @@
     if (nextBtn) nextBtn.disabled = false;
 
     var memory = getInterlude(idxQ);
+
+    // show flowers line ONLY once (first interlude)
+    var tail = "Turn the page…";
+    if (!flowersShownOnce) {
+      tail = "Turn the page… and yes — I’m still bringing you flowers.";
+      flowersShownOnce = true;
+    }
+
     if (card) {
       card.innerHTML =
         '<h3 class="qTitle">Ek chhoti si yaad…</h3>' +
         '<p class="qPrompt">' + memory + '</p>' +
-        '<p class="qPrompt" style="opacity:.78">Turn the page… I’m saving the best parts for later.</p>';
+        '<p class="qPrompt" style="opacity:.78">' + tail + '</p>';
     }
   }
 
@@ -686,7 +692,6 @@
     if (nextBtn) nextBtn.disabled = true;
   }
 
-  // ===== Answer export =====
   function buildAnswerSummary(){
     var vibeQ = questions.find(function(x){ return x.id === "vibe"; });
     var traitQ = questions.find(function(x){ return x.id === "trait"; });
@@ -744,43 +749,6 @@
     return Promise.resolve();
   }
 
-  // ===== Navigation =====
-  if (backBtn) {
-    backBtn.addEventListener("click", function () {
-      if (mode === "note") { mode = "question"; return render(); }
-      idxQ = Math.max(0, idxQ - 1);
-      mode = "question";
-      render();
-    });
-  }
-
-  if (nextBtn) {
-    nextBtn.addEventListener("click", function () {
-      var q = questions[idxQ];
-
-      if (mode === "question") {
-        mode = "note";
-        render();
-        return;
-      }
-
-      mode = "question";
-
-      if (q.id === "valentine_yes" && answers[q.id] !== "yes") {
-        render();
-        return;
-      }
-
-      if (idxQ >= questions.length - 1) {
-        finish();
-        return;
-      }
-
-      idxQ += 1;
-      render();
-    });
-  }
-
   function finish() {
     var vibeQ = questions.find(function(x){ return x.id === "vibe"; });
     var vibe = (answers.vibe !== undefined && vibeQ) ? vibeQ.options[answers.vibe] : "—";
@@ -789,8 +757,8 @@
     safeText($("finalTitle"), GIRLFRIEND_NAME + ", you’re my Valentine.");
     safeText($("finalBody"),
       "Here’s to us.\n" +
+      "To the kindness you wear so well.\n" +
       "To your calm — my favorite place.\n" +
-      "To the tiny efforts you think no one sees.\n" +
       "And to every chapter that comes next."
     );
 
@@ -836,6 +804,43 @@
     }
 
     if (sigInput) setTimeout(function(){ sigInput.focus(); }, 250);
+  }
+
+  // ===== Navigation =====
+  if (backBtn) {
+    backBtn.addEventListener("click", function () {
+      if (mode === "note") { mode = "question"; return render(); }
+      idxQ = Math.max(0, idxQ - 1);
+      mode = "question";
+      render();
+    });
+  }
+
+  if (nextBtn) {
+    nextBtn.addEventListener("click", function () {
+      var q = questions[idxQ];
+
+      if (mode === "question") {
+        mode = "note";
+        render();
+        return;
+      }
+
+      mode = "question";
+
+      if (q.id === "valentine_yes" && answers[q.id] !== "yes") {
+        render();
+        return;
+      }
+
+      if (idxQ >= questions.length - 1) {
+        finish();
+        return;
+      }
+
+      idxQ += 1;
+      render();
+    });
   }
 
   // ===== Start =====
